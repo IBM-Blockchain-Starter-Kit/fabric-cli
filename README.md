@@ -27,6 +27,9 @@ Options:
   --src-dir     Relative path where the chaincode is located with respect to
                 GOPATH/src                                   [string] [required]
                
+Example:
+node fabric-cli.js chaincode install --net-config /Users/jorgedr/Documents/visual-workspaces/ccInstallation/app/network-config.json --crypto-dir /Users/jorgedr/Documents/visual-workspaces/ccInstallation/artifacts/channel/crypto-config --cc-name ping8 --src-dir chaincode  --org org1 --cc-version 1.0 --channel channel1
+
 ```
 
 ### Instantiate chaincode
@@ -50,4 +53,6 @@ Options:
   --channel     Name of the channel to instantiate chaincode [string] [required]
   --init-arg    Value(s) to pass as argument to instantiation call.      [array]
   
+  Example:
+  node fabric-cli.js chaincode instantiate --net-config /Users/jorgedr/Documents/visual-workspaces/ccInstallation/app/network-config.json --crypto-dir /Users/jorgedr/Documents/visual-workspaces/ccInstallation/artifacts/channel/crypto-config --cc-name ping6  --org org1 --cc-version 1.0 --channel channel1 --init-arg arg1 arg2 arg3 
   ```
