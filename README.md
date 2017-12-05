@@ -1,7 +1,8 @@
 # Overview
-The fabric-cli project is a simple nodejs application used to manage operational aspects of fabric required to run the pipeline.  Currently the following commands are implemented:
+The fabric-cli project is a simple nodejs application used to manage operational aspects of fabric required to run the pipeline.   In the future when the fabric CLI is eaiser to use we can move to use the peer command instead but for now we will create the pipeline using these customs commands. 
 
 
+Currently the following commands are implemented:
 
 ### Install Chaincode
 
