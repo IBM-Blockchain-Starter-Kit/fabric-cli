@@ -47,6 +47,11 @@ exports.builder = function (yargs) {
         describe: 'Value(s) to pass as argument to invoke call.',
         requiresArg: true,
         type: 'string'
+    }).option('query', {
+        demandOption: false,
+        describe: 'Specify if this invocation is just a query to the ledger',
+        requiresArg: false,
+        type: 'boolean'
     });
 };
 
@@ -54,5 +59,5 @@ exports.handler = function (argv) {
 
     //let's get peers from config file
     console.log("Invoking transaction in chaincode");
-    return invokeLib.invokeTransaction(argv['net-config'], argv['channel'], argv['cc-name'], argv['cc-version'], argv['invoke-arg'],  argv['invoke-fn'], argv['org']);
+    return invokeLib.invokeTransaction(argv['net-config'], argv['channel'], argv['cc-name'], argv['cc-version'], argv['invoke-arg'],  argv['invoke-fn'],argv['org'], argv['query']);
 };
