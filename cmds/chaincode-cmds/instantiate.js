@@ -40,13 +40,9 @@ exports.builder = function (yargs) {
         array: true,
         demandOption: false,
         describe: 'Value(s) to pass as argument to instantiation call.',
-        requiresArg: true,
-        type: 'string'
-    }).option('upgrade', {
-        demandOption: true,
-        describe: 'Specify \'true\' if instantiating new version of existing chaincode.',
-        requiresArg: true,
-        type: 'string'
+        requiresArg: false,
+        type: 'string',
+        default: []
     });
 };
 
@@ -56,5 +52,5 @@ exports.handler = function (argv) {
     console.log("Instantiating chaincode");
     return instantiateLib.instantiateChaincode(argv['net-config'], argv['channel'], 
             argv['cc-name'], argv['cc-version'], argv['init-arg'], 
-            null, argv['org'], argv['upgrade']);
+            null, argv['org']);
 };

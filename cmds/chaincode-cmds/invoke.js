@@ -45,13 +45,15 @@ exports.builder = function (yargs) {
         array: true,
         demandOption: false,
         describe: 'Value(s) to pass as argument to invoke call.',
-        requiresArg: true,
-        type: 'string'
+        requiresArg: false,
+        type: 'string',
+        default: []
     }).option('query', {
         demandOption: false,
         describe: 'Specify if this invocation is just a query to the ledger',
         requiresArg: false,
-        type: 'boolean'
+        type: 'boolean',
+        default: false
     });
 };
 
