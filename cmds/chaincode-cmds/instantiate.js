@@ -18,6 +18,7 @@ const hfc = require("fabric-client");
 const path = require("path");
 const instantiateLib = require("../../lib/instantiate-chaincode.js");
 
+// https://devhints.io/yargs
 exports.command = "instantiate";
 exports.desc = "Instantiate chaincode";
 exports.builder = function(yargs) {
@@ -51,13 +52,22 @@ exports.builder = function(yargs) {
     .option("timeout", {
       demandOption: false,
       describe:
-        "Specify number of milliseconds to wait on the response before rejecting ",
+        "Specify number of milliseconds to wait on the response before rejecting.",
       requiresArg: true,
       type: "number",
       default: 120000
+    })
+    .option("endorsement-policy", {
+      demandOption: false,
+      describe:
+        "The endorsement policy for the chaincode (this is an optional parameter).",
+      requiresArg: true,
+      type: "string",
+      default: null
     });
 };
 
+//TODO: parse policy here to validate it is JSON???
 exports.handler = function(argv) {
   //let's get peers from config file
   console.log("Instantiating chaincode");
@@ -69,6 +79,7 @@ exports.handler = function(argv) {
     argv["init-arg"],
     null,
     argv["org"],
-    argv["timeout"]
+    argv["timeout"],
+    argv["endorsement-policy"]
   );
 };
