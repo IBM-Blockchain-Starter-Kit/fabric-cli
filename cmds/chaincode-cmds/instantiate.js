@@ -64,10 +64,21 @@ exports.builder = function(yargs) {
       requiresArg: true,
       type: "string",
       default: null
-    });
+    })
+    .check(function(argv){
+      //validate endorsement policy (i.e. validate it is JSON)
+      var endorsementPolicy = argv['endorsement-policy'];
+      try {
+        console.log("endorsementPolicy received: " + endorsementPolicy);
+        JSON.parse(endorsementPolicy);
+        return true;
+      } catch(err) {
+        console.log("Failed to parse as JSON provided endorsementPolicy: " + err);
+        throw(new Error('Invalid --endorsement-policy argument. It was not a valid JSON.'));
+      }
+  });
 };
 
-//TODO: parse policy here to validate it is JSON???
 exports.handler = function(argv) {
   //let's get peers from config file
   console.log("Instantiating chaincode");
