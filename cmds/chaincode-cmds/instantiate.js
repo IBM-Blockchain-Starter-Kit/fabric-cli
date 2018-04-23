@@ -69,7 +69,7 @@ exports.builder = function(yargs) {
       //validate endorsement policy (i.e. validate it is JSON)
       var endorsementPolicy = argv['endorsement-policy'];
       try {
-        console.log("endorsementPolicy received: " + endorsementPolicy);
+        console.log("Endorsement policy provided as input: " + endorsementPolicy);
         JSON.parse(endorsementPolicy);
         return true;
       } catch(err) {
