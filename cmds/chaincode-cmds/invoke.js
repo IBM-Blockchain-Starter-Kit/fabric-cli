@@ -16,7 +16,7 @@ limitations under the License.
 const fs = require("fs");
 const hfc = require("fabric-client");
 const path = require("path");
-const invokeLib = require("../../lib/invoke-transaction.js");
+const invokeLib = require("../../lib/invoke-chaincode.js");
 
 exports.command = "invoke";
 exports.desc = "Invoke a transaction in the chaincode";
@@ -74,7 +74,7 @@ exports.builder = function(yargs) {
 exports.handler = function(argv) {
   //let's get peers from config file
   console.log("Invoking transaction in chaincode");
-  return invokeLib.invokeTransaction(
+  return invokeLib.invokeChaincode(
     argv["net-config"],
     argv["channel"],
     argv["cc-name"],
