@@ -66,5 +66,5 @@ exports.handler = function (argv) {
 
     //let's get peers from config file
     console.log("Installing chaincode");
-    return installLib.installChaincode(argv['net-config'], argv['channel'], argv['cc-name'], argv['src-dir'], argv['cc-version'], argv['org']);
+    return installLib.installChaincode(argv['net-config'], argv['channel'], argv['cc-name'], argv['src-dir'], argv['cc-version'], argv['org'], argv["crypto-dir"]);
 };

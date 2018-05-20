@@ -91,6 +91,7 @@ exports.handler = function(argv) {
     null,
     argv["org"],
     argv["timeout"],
-    argv["endorsement-policy"]
+    argv["endorsement-policy"],
+    argv["crypto-dir"]
   );
 };
