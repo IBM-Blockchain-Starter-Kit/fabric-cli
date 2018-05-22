@@ -83,6 +83,7 @@ exports.handler = function(argv) {
     argv["invoke-fn"],
     argv["org"],
     argv["query"],
-    argv["timeout"]
+    argv["timeout"],
+    argv["crypto-dir"]
   );
 };
