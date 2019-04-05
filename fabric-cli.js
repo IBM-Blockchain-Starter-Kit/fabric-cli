@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /*
 Copyright IBM Corp. 2017 All Rights Reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +17,12 @@ limitations under the License.
 const yargs = require('yargs');
 const winston = require('winston');
 
-
-
-yargs.usage('$0 <cmd> [args]')
-.commandDir('cmds')
-.help()
-.strict()
-.recommendCommands()
-.epilogue('For more information visit https://github.ibm.com/BlockchainLabs/fabric-cli')
-.argv;
+yargs
+	.usage('$0 <cmd> [args]')
+	.commandDir('cmds')
+	.help()
+	.strict()
+	.recommendCommands()
+	.epilogue(
+		'For more information visit https://github.ibm.com/BlockchainLabs/fabric-cli'
+	).argv;
