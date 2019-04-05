@@ -2,6 +2,17 @@
 The fabric-cli project is a simple nodejs application used to manage operational aspects of fabric required to run the pipeline.   In the future when the fabric CLI is eaiser to use we can move to use the peer command instead but for now we will create the pipeline using these customs commands. 
 
 
+### To run as a cli command
+
+1. Go to root directory of project
+2. Run `chmod +x fabric-cli.js` to make the file executable
+3. Run the command `npm link`
+4. Run the command `fabric-cli --version` to confirm the command is available from the cli
+   
+Note: Remember to run `npm unlink` once done to keep npm clean!
+
+
+
 Currently the following commands are implemented:
 
 ### Install Chaincode
