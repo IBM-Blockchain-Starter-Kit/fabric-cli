@@ -67,3 +67,8 @@ Options:
   Example:
   node fabric-cli.js chaincode instantiate --net-config /Users/jorgedr/Documents/visual-workspaces/ccInstallation/app/network-config.json --crypto-dir /Users/jorgedr/Documents/visual-workspaces/ccInstallation/artifacts/channel/crypto-config --cc-name ping6  --org org1 --cc-version 1.0 --channel channel1 --init-arg arg1 arg2 arg3 
   ```
+
+
+### Example command
+
+fabric-cli chaincode install --net-config <path/to/config.json> --org <orgName> --cc-name <chaincodeName> --cc-version <version> --channel <channelName> --src-dir <chaincode.go> --crypto-dir <path/to/crypto>
