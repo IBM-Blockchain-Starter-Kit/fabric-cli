@@ -12,3 +12,4 @@ dist
 # Some test data
 local_fabric
 remote_fabric
+simple-config.json
