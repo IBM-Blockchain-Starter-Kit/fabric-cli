@@ -1,21 +1,25 @@
 {
-	"name": "fabric-cli",
-	"version": "1.0.1",
-	"description": "Simple CLI to normalize how to interact with fabric",
-	"main": "fabric-cli.js",
-	"engines": {
-		"node": ">=8",
-		"npm": ">=5"
-	},
-	"license": "Apache-2.0",
-	"dependencies": {
-		"fabric-ca-client": "latest",
-		"fabric-client": "latest",
-		"fs-extra": "^2.0.0",
-		"log4js": "^0.6.38",
-		"yargs": "^10.0.3"
-	},
-	"bin": {
-		"fabric-cli": "./fabric-cli.js"
-	}
+    "name": "fabric-cli",
+    "version": "1.0.1",
+    "description": "Simple CLI to normalize how to interact with fabric",
+    "main": "fabric-cli.js",
+    "engines": {
+        "node": ">=8",
+        "npm": ">=5"
+    },
+    "scripts": {
+        "build": "tsc",
+        "build:watch": "tsc -w"
+    },
+    "license": "Apache-2.0",
+    "dependencies": {
+        "fabric-ca-client": "latest",
+        "fabric-client": "latest",
+        "fs-extra": "^2.0.0",
+        "log4js": "^0.6.38",
+        "yargs": "^10.0.3"
+    },
+    "bin": {
+        "fabric-cli": "./fabric-cli.js"
+    }
 }
