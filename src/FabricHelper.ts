@@ -38,7 +38,7 @@ export default class FabricHelper {
 
     private channel: string;
     private keyValueStoreBasePath: string;
-    private cryptoDir: string;
+    private cryptoDirPath: string;
 
     static getLogger(moduleName: string, loggingLevel: string = 'INFO') {
         const logger = log4js.getLogger(moduleName);
@@ -50,7 +50,7 @@ export default class FabricHelper {
         networkConfigFilePath: string,
         channelName: string,
         keyValueStoreBasePath: string,
-        cryptoDir: string
+        cryptoDirPath: string
     ) {
         FabricClient.addConfigFile(networkConfigFilePath);
         this.ORGS = FabricClient.getConfigSetting('network-config');
@@ -59,17 +59,17 @@ export default class FabricHelper {
         this.caClients = {};
         this.channel = channelName;
         this.keyValueStoreBasePath = keyValueStoreBasePath;
-        this.cryptoDir = cryptoDir;
+        this.cryptoDirPath = cryptoDirPath;
 
         // set up the client and channel objects for each org
-        for (const key in this.ORGS) {
-            if (key.indexOf('org') === 0) {
+        for (const org in this.ORGS) {
+            if (org.indexOf('org') === 0) {
                 const client = new FabricClient();
 
                 const cryptoSuite = FabricClient.newCryptoSuite();
                 cryptoSuite.setCryptoKeyStore(
                     FabricClient.newCryptoKeyStore({
-                        path: this.getKeyStoreForOrg(this.ORGS[key].name)
+                        path: this.getKeyStoreForOrg(this.ORGS[org].name)
                     })
                 );
                 client.setCryptoSuite(cryptoSuite);
@@ -77,18 +77,18 @@ export default class FabricHelper {
                 const channel = client.newChannel(this.channel);
                 channel.addOrderer(this.newOrderer(client));
 
-                this.clients[key] = client;
-                this.channels[key] = channel;
+                this.clients[org] = client;
+                this.channels[org] = channel;
 
-                this.setupPeers(channel, key, client);
+                this.setupPeers(channel, org, client);
 
-                const caUrl = this.ORGS[key].ca.url;
-                const caName = this.ORGS[key].ca.name;
+                const caUrl = this.ORGS[org].ca.url;
+                const caName = this.ORGS[org].ca.name;
 
-                logger.info('The Org for this CA is: ' + key);
+                logger.info('The Org for this CA is: ' + org);
                 logger.info('The CA Name is: ' + caName);
                 logger.info('The CA UrL is: ' + caUrl);
-                this.caClients[key] = new CaClient(
+                this.caClients[org] = new CaClient(
                     caUrl,
                     null /*defautl TLS opts*/,
                     caName,
@@ -104,7 +104,9 @@ export default class FabricHelper {
 
     private newOrderer(client: FabricClient): FabricClient.Orderer {
         const caRootsPath = this.ORGS.orderer.tls_cacerts;
-        const data = fs.readFileSync(path.join(this.cryptoDir, caRootsPath));
+        const data = fs.readFileSync(
+            path.join(this.cryptoDirPath, caRootsPath)
+        );
         const caroots = Buffer.from(data).toString();
         return client.newOrderer(this.ORGS.orderer.url, {
             pem: caroots
@@ -120,7 +122,7 @@ export default class FabricHelper {
         for (const key in this.ORGS[org].peers) {
             const data = fs.readFileSync(
                 path.join(
-                    this.cryptoDir,
+                    this.cryptoDirPath,
                     this.ORGS[org].peers[key]['tls_cacerts']
                 )
             );
@@ -171,32 +173,32 @@ export default class FabricHelper {
         return this.clients[org];
     }
 
-    public async getOrgAdmin(userOrg: string): Promise<FabricClient.User> {
-        logger.debug(`Getting org admin for user org: ${userOrg}`);
-        const admin = this.ORGS[userOrg].admin;
+    public async getOrgAdmin(org: string): Promise<FabricClient.User> {
+        if (!this.ORGS[org]) throw new Error(`Unknown Org: ${org}`);
 
-        const keyPath = path.join(this.cryptoDir, admin.key);
+        logger.debug(`Getting org admin for user org: ${org}`);
+        const admin = this.ORGS[org].admin;
+
+        const keyPath = path.join(this.cryptoDirPath, admin.key);
         logger.debug(`Org admin keyPath: ${keyPath}`);
         const keyPEM = Buffer.from(this.readAllFiles(keyPath)[0]).toString();
 
-        const certPath = path.join(this.cryptoDir, admin.cert);
+        const certPath = path.join(this.cryptoDirPath, admin.cert);
         logger.debug(`The certPath: ${certPath}`);
         const certPEM = this.readAllFiles(certPath)[0].toString();
 
-        const client = this.getClientForOrg(userOrg);
+        const client = this.getClientForOrg(org);
         const cryptoSuite = FabricClient.newCryptoSuite();
 
-        if (userOrg) {
-            cryptoSuite.setCryptoKeyStore(
-                FabricClient.newCryptoKeyStore({
-                    path: this.getKeyStoreForOrg(this.getOrgName(userOrg))
-                })
-            );
-            client.setCryptoSuite(cryptoSuite);
-        }
+        cryptoSuite.setCryptoKeyStore(
+            FabricClient.newCryptoKeyStore({
+                path: this.getKeyStoreForOrg(this.getOrgName(org))
+            })
+        );
+        client.setCryptoSuite(cryptoSuite);
 
         const store = await FabricClient.newDefaultKeyValueStore({
-            path: this.getKeyStoreForOrg(this.getOrgName(userOrg))
+            path: this.getKeyStoreForOrg(this.getOrgName(org))
         });
 
         client.setStateStore(store);
@@ -205,8 +207,8 @@ export default class FabricHelper {
         logger.debug(`certPEM: ${inspect(certPEM)}`);
 
         return await client.createUser({
-            username: 'peer' + userOrg + 'Admin',
-            mspid: this.getMspID(userOrg),
+            username: 'peer' + org + 'Admin',
+            mspid: this.getMspID(org),
             cryptoContent: {
                 privateKeyPEM: keyPEM,
                 signedCertPEM: certPEM
