@@ -9,7 +9,10 @@
     },
     "scripts": {
         "build": "tsc",
-        "build:watch": "tsc -w"
+        "build:watch": "tsc -w",
+        "test": "LOGGING_LEVEL=error jest",
+        "test:watch": "LOGGING_LEVEL=error jest --watchAll",
+        "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
     },
     "license": "Apache-2.0",
     "dependencies": {
@@ -21,5 +24,27 @@
     },
     "bin": {
         "fabric-cli": "./fabric-cli.js"
+    },
+    "devDependencies": {
+        "@types/jest": "^24.0.11",
+        "jest": "^24.7.1",
+        "ts-jest": "^24.0.2",
+        "typescript": "^3.4.3"
+    },
+    "jest": {
+        "testEnvironment": "node",
+        "transform": {
+            "^.+\\.tsx?$": "ts-jest"
+        },
+        "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+        "moduleFileExtensions": [
+            "ts",
+            "js",
+            "json",
+            "node"
+        ],
+        "reporters": [
+            "default"
+        ]
     }
 }
