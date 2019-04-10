@@ -23,7 +23,11 @@ import { inspect } from 'util';
 
 const logger = log4js.getLogger('FabricHelper');
 
-logger.setLevel('DEBUG');
+const LOGGING_LEVEL = process.env.LOGGING_LEVEL
+    ? process.env.LOGGING_LEVEL
+    : 'info';
+
+logger.setLevel(LOGGING_LEVEL);
 FabricClient.setLogger(logger);
 
 export default class FabricHelper {
@@ -36,9 +40,9 @@ export default class FabricHelper {
     private keyValueStoreBasePath: string;
     private cryptoDir: string;
 
-    static getLogger(moduleName) {
-        var logger = log4js.getLogger(moduleName);
-        logger.setLevel('DEBUG');
+    static getLogger(moduleName: string, loggingLevel: string = 'INFO') {
+        const logger = log4js.getLogger(moduleName);
+        logger.setLevel(loggingLevel);
         return logger;
     }
 
@@ -212,110 +216,6 @@ export default class FabricHelper {
     }
 }
 
-//Constructor
-// function FabricHelper1(
-//     networkConfigFilePath,
-//     channelName,
-//     keyValueStoreBasePath,
-//     cryptoDir
-// ) {
-//     console.log(networkConfigFilePath);
-//     FabricClient.addConfigFile(networkConfigFilePath);
-//     this.ORGS = FabricClient.getConfigSetting('network-config');
-//     this.clients = {};
-//     this.channels = {};
-//     this.caClients = {};
-//     this.channel = channelName;
-//     this.keyValueStoreBasePath = keyValueStoreBasePath;
-//     this.cryptoDir = cryptoDir;
-
-//     // set up the client and channel objects for each org
-//     for (let key in this.ORGS) {
-//         if (key.indexOf('org') === 0) {
-//             let client = new FabricClient();
-
-//             let cryptoSuite = FabricClient.newCryptoSuite();
-//             cryptoSuite.setCryptoKeyStore(
-//                 FabricClient.newCryptoKeyStore({
-//                     path: this.getKeyStoreForOrg(this.ORGS[key].name)
-//                 })
-//             );
-//             client.setCryptoSuite(cryptoSuite);
-
-//             let channel = client.newChannel(this.channel);
-//             channel.addOrderer(this.newOrderer(client));
-
-//             this.clients[key] = client;
-//             this.channels[key] = channel;
-
-//             this.setupPeers(channel, key, client);
-
-//             let caUrl = this.ORGS[key].ca.url;
-//             let caName = this.ORGS[key].ca.name;
-
-//             console.log('The Org for this CA is: ' + key);
-//             console.log('The CA Name is: ' + caName);
-//             console.log('The CA UrL is: ' + caUrl);
-//             this.caClients[key] = new CaClient(
-//                 caUrl,
-//                 null /*defautl TLS opts*/,
-//                 // { trustedRoots: [], verify: false },
-//                 caName,
-//                 cryptoSuite
-//             );
-//         }
-//     }
-// }
-
-// FabricHelper.prototype.setupPeers = function(channel, org, client) {
-//     for (let key in this.ORGS[org].peers) {
-//         let data = fs.readFileSync(
-//             path.join(this.cryptoDir, this.ORGS[org].peers[key]['tls_cacerts'])
-//         );
-
-//         console.log('\nData from file:');
-//         console.log(Buffer.from(data).toString());
-
-//         let peer = client.newPeer(this.ORGS[org].peers[key].requests, {
-//             pem: Buffer.from(data).toString()
-//         });
-//         peer.setName(key);
-
-//         channel.addPeer(peer);
-//     }
-// };
-
-// FabricHelper.prototype.newOrderer = function(client) {
-//     var caRootsPath = this.ORGS.orderer.tls_cacerts;
-//     let data = fs.readFileSync(path.join(this.cryptoDir, caRootsPath));
-//     let caroots = Buffer.from(data).toString();
-//     return client.newOrderer(this.ORGS.orderer.url, {
-//         pem: caroots
-//     });
-// };
-
-// FabricHelper.prototype.readAllFiles = function(dir) {
-//     var files = fs.readdirSync(dir);
-//     // We should remove hidden files to avoid nasty surprises
-//     // For instance, macOS may add the infamous .DS_Store file
-//     files = files.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item));
-//     var certs = [];
-//     files.forEach((file_name) => {
-//         let file_path = path.join(dir, file_name);
-//         let data = fs.readFileSync(file_path);
-//         certs.push(data);
-//     });
-//     return certs;
-// };
-
-// FabricHelper.prototype.getOrgName = function(org) {
-//     return this.ORGS[org].name;
-// };
-
-// FabricHelper.prototype.getKeyStoreForOrg = function(org) {
-//     return this.keyValueStoreBasePath + '_' + org;
-// };
-
 // FabricHelper.prototype.newRemotes = function(names, forPeers, userOrg) {
 //     let client = this.getClientForOrg(userOrg);
 
@@ -366,13 +266,6 @@ export default class FabricHelper {
 // //-------------------------------------//
 // // APIs
 // //-------------------------------------//
-// FabricHelper.prototype.getChannelForOrg = function(org) {
-//     return this.channels[org];
-// };
-
-// FabricHelper.prototype.getClientForOrg = function(org) {
-//     return this.clients[org];
-// };
 
 // FabricHelper.prototype.newPeers = function(names, org) {
 //     return this.newRemotes(names, true, org);
@@ -380,11 +273,6 @@ export default class FabricHelper {
 
 // FabricHelper.prototype.newEventHubs = function(names, org) {
 //     return this.newRemotes(names, false, org);
-// };
-
-// FabricHelper.prototype.getMspID = function(org) {
-//     logger.debug('Msp ID : ' + this.ORGS[org].mspid);
-//     return this.ORGS[org].mspid;
 // };
 
 // FabricHelper.prototype.getAdminUser = function(username, password, userOrg) {
@@ -554,45 +442,6 @@ export default class FabricHelper {
 //         );
 // };
 
-// FabricHelper.prototype.getOrgAdmin = function(userOrg) {
-//     console.log('The user org: ' + userOrg);
-//     var admin = this.ORGS[userOrg].admin;
-//     //var keyPath = path.join(__dirname, admin.key);
-//     var keyPath = path.join(this.cryptoDir, admin.key);
-//     console.log('The keyPath: ' + keyPath);
-//     var keyPEM = Buffer.from(this.readAllFiles(keyPath)[0]).toString();
-//     //var certPath = path.join(__dirname, admin.cert);
-//     var certPath = path.join(this.cryptoDir, admin.cert);
-//     console.log('The certPath: ' + certPath);
-//     var certPEM = this.readAllFiles(certPath)[0].toString();
-
-//     var client = this.getClientForOrg(userOrg);
-//     var cryptoSuite = FabricClient.newCryptoSuite();
-//     if (userOrg) {
-//         cryptoSuite.setCryptoKeyStore(
-//             FabricClient.newCryptoKeyStore({
-//                 path: this.getKeyStoreForOrg(this.getOrgName(userOrg))
-//             })
-//         );
-//         client.setCryptoSuite(cryptoSuite);
-//     }
-
-//     return FabricClient.newDefaultKeyValueStore({
-//         path: this.getKeyStoreForOrg(this.getOrgName(userOrg))
-//     }).then((store) => {
-//         client.setStateStore(store);
-
-//         return client.createUser({
-//             username: 'peer' + userOrg + 'Admin',
-//             mspid: this.getMspID(userOrg),
-//             cryptoContent: {
-//                 privateKeyPEM: keyPEM,
-//                 signedCertPEM: certPEM
-//             }
-//         });
-//     });
-// };
-
 // /**
 //  * Inspect the result of a proposal and returns true if the prosal result was successful, false otherwise.
 //  */
@@ -745,5 +594,3 @@ export default class FabricHelper {
 //     let sendPromise = channel.sendTransaction(request);
 //     return Promise.all([sendPromise].concat([txPromise]));
 // };
-
-// module.exports = FabricHelper;
