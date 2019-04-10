@@ -17,7 +17,7 @@
 import * as path from 'path';
 import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
-import { format, inspect } from 'util';
+import { inspect } from 'util';
 
 const logger = FabricHelper.getLogger('install-chaincode');
 
@@ -31,7 +31,7 @@ export async function installChaincode(
     cryptoDir
 ) {
     logger.debug(
-        '\n============ Install chaincode on organizations ============\n'
+        `============ Install chaincode called for organization: ${org} ============`
     );
 
     const helper: FabricHelper = new FabricHelper(
@@ -46,7 +46,7 @@ export async function installChaincode(
 
     const user: FabricClient.User = await helper.getOrgAdmin(org);
 
-    logger.debug(`\n Successfully retrieved admin user: ${user}`);
+    logger.debug(`Successfully retrieved admin user: ${user}`);
 
     // Need to convert targets from ChannelPeer to Peer
     const installTargets = channel.getPeers().map((peer) => peer.getPeer());
@@ -59,7 +59,7 @@ export async function installChaincode(
     };
 
     logger.debug(
-        `\n Calling client.installChaincode with request: ${inspect(request)}\n`
+        `Calling client.installChaincode with request: ${inspect(request)}`
     );
 
     let results: [
@@ -88,7 +88,6 @@ export async function installChaincode(
         (response) => response instanceof Error
     ) as Error[];
 
-    // When any of the responses are errors
     if (errorsFound.length > 0) {
         logger.error(
             `Failed to send install Proposal or receive valid response: ${
@@ -102,7 +101,7 @@ export async function installChaincode(
         );
     }
 
-    // For TS, need to cast all elements to ProposalResponses. We know all are at this point
+    // For TS, need to cast all elements to ProposalResponses. We know all are at this point.
     const proposalResponses = responses as FabricClient.ProposalResponse[];
 
     const badResponsesFound = proposalResponses.filter(
@@ -123,13 +122,12 @@ export async function installChaincode(
     }
 
     logger.info(
-        format(
-            'Successfully sent install Proposal and received ProposalResponse: Status - %s',
+        `Successfully sent install Proposal and received ProposalResponse: Status - ${
             proposalResponses[0].response.status
-        )
+        }`
     );
 
-    // For formatting returned message
+    // For formatting returned message.
     const peerNames: string = channel
         .getPeers()
         .map((peer) => peer.getName())
