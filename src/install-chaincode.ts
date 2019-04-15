@@ -62,13 +62,31 @@ export async function installChaincode(
         `Calling client.installChaincode with request: ${inspect(request)}`
     );
 
-    let results: [
+    const InstallProposalResponses = await installChaincodeOnPeersInRequest(
+        client,
+        request
+    );
+
+    helper.inspectProposalResponses(InstallProposalResponses);
+
+    const peerNames: string = helper.getPeerNamesAsStringForChannel(channel);
+
+    logger.debug(
+        `Successfully installed chaincode on peers (${peerNames}) for organization ${org}`
+    );
+}
+
+async function installChaincodeOnPeersInRequest(
+    client: FabricClient,
+    request: FabricClient.ChaincodeInstallRequest
+): Promise<[(FabricClient.ProposalResponse | Error)[], FabricClient.Proposal]> {
+    let proposalResponses: [
         (FabricClient.ProposalResponse | Error)[],
         FabricClient.Proposal
     ];
 
     try {
-        results = await client.installChaincode(request);
+        proposalResponses = await client.installChaincode(request);
     } catch (err) {
         logger.error(
             `Failed to send install proposal due to error: ` + err.stack
@@ -82,58 +100,5 @@ export async function installChaincode(
         );
     }
 
-    const responses: (FabricClient.ProposalResponse | Error)[] = results[0];
-
-    const errorsFound = responses.filter(
-        (response) => response instanceof Error
-    ) as Error[];
-
-    if (errorsFound.length > 0) {
-        logger.error(
-            `Failed to send install Proposal or receive valid response: ${
-                errorsFound[0].message
-            }`
-        );
-        throw new Error(
-            `Failed to send install Proposal or receive valid response: ${
-                errorsFound[0].message
-            }`
-        );
-    }
-
-    // For TS, need to cast all elements to ProposalResponses. We know all are at this point.
-    const proposalResponses = responses as FabricClient.ProposalResponse[];
-
-    const badResponsesFound = proposalResponses.filter(
-        (response) => response.response && response.response.status !== 200
-    );
-
-    if (badResponsesFound.length > 0) {
-        logger.error(
-            `Response null or has a status not equal to 200: ${inspect(
-                badResponsesFound[0]
-            )}`
-        );
-        throw new Error(
-            `Response null or has a status not equal to 200: ${inspect(
-                badResponsesFound[0]
-            )}`
-        );
-    }
-
-    logger.info(
-        `Successfully sent install Proposal and received ProposalResponse: Status - ${
-            proposalResponses[0].response.status
-        }`
-    );
-
-    // For formatting returned message.
-    const peerNames: string = channel
-        .getPeers()
-        .map((peer) => peer.getName())
-        .join(',');
-
-    logger.debug(
-        `Successfully installed chaincode on peers (${peerNames}) for organization ${org}`
-    );
+    return proposalResponses;
 }
