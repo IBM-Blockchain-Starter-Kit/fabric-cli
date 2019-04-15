@@ -15,7 +15,6 @@
  */
 
 import * as path from 'path';
-import * as fs from 'fs-extra';
 import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
 import { inspect } from 'util';
@@ -50,9 +49,11 @@ export async function instantiateChaincode(
     const channel = helper.getChannelForOrg(org);
     const client = helper.getClientForOrg(org);
     const user = await helper.getOrgAdmin(org);
-    const peerNames: string = helper.getPeerNamesAsStringForChannel(channel);
+    const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
+        channel
+    );
 
-    // turn on service discovery so when we call getPeer(), we get an upto date peer
+    // TODO: turn on service discovery so when we call getPeer(), we get an upto date peer
 
     const { upgrade, versionToDeploy } = await checkIsUpgradeAndGetVersion(
         channel,
@@ -60,7 +61,7 @@ export async function instantiateChaincode(
         chaincodeName
     );
 
-    // Override deployment version if one is given.
+    // Override deployment version if one is given. Not yet supported as command line param is currently required.
     if (!chaincodeVersion) chaincodeVersion = versionToDeploy;
 
     await channel.initialize();
@@ -68,7 +69,7 @@ export async function instantiateChaincode(
     tx_id = client.newTransactionID();
 
     logger.info(
-        `Attempting to deploy ${chaincodeName} version: ${chaincodeVersion} to Peers (${peerNames} for organization ${org})`
+        `Attempting to deploy ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${peerNames})`
     );
 
     const deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest = buildDeploymentOptions(
@@ -81,10 +82,10 @@ export async function instantiateChaincode(
         args
     );
 
-    await deployChaincode(channel, deploymentOptions, upgrade, helper, timeout);
+    await deployChaincode(channel, deploymentOptions, upgrade, timeout);
 
     logger.info(
-        `Successfully installed deployed ${chaincodeName}(Verion: ${chaincodeVersion}) on peers (${peerNames}) for organization ${org}`
+        `Successfully deployed ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${peerNames})`
     );
 }
 
@@ -97,7 +98,6 @@ function buildDeploymentOptions(
     endorsementPolicy: string,
     args: string[]
 ): FabricClient.ChaincodeInstantiateUpgradeRequest {
-    // Build Deployment Options
     const deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest = {
         chaincodeType: chaincodeType,
         chaincodeId: chaincodeName,
@@ -155,19 +155,18 @@ async function deployChaincode(
     channel: FabricClient.Channel,
     deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest,
     upgrade: boolean,
-    helper: FabricHelper,
     timeout: number
 ) {
-    let proposalResponses = await helper.sendChaincodeProposalToPeers(
+    let proposalResponses = await FabricHelper.sendChaincodeProposalToPeers(
         channel,
         deploymentOptions,
         upgrade,
         timeout
     );
 
-    helper.inspectProposalResponses(proposalResponses);
+    FabricHelper.inspectProposalResponses(proposalResponses);
 
-    helper.registerAndConnectTxEventHub(
+    FabricHelper.registerAndConnectTxEventHub(
         channel,
         deploymentOptions.txId.getTransactionID()
     );

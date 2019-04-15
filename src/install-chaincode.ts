@@ -67,11 +67,13 @@ export async function installChaincode(
         request
     );
 
-    helper.inspectProposalResponses(InstallProposalResponses);
+    FabricHelper.inspectProposalResponses(InstallProposalResponses);
 
-    const peerNames: string = helper.getPeerNamesAsStringForChannel(channel);
+    const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
+        channel
+    );
 
-    logger.debug(
+    logger.info(
         `Successfully installed chaincode on peers (${peerNames}) for organization ${org}`
     );
 }

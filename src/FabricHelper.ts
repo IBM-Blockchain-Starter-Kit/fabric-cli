@@ -45,6 +45,136 @@ export default class FabricHelper {
         logger.setLevel(loggingLevel);
         return logger;
     }
+    static inspectProposalResponses(
+        proposalResult: [
+            (FabricClient.ProposalResponse | Error)[],
+            FabricClient.Proposal
+        ]
+    ): void {
+        const responses: (FabricClient.ProposalResponse | Error)[] =
+            proposalResult[0];
+
+        const errorsFound = responses.filter(
+            (response) => response instanceof Error
+        ) as Error[];
+
+        if (errorsFound.length > 0) {
+            logger.error(
+                `Failed to send instantional/upgrade Proposal or receive valid response: ${
+                    errorsFound[0].message
+                }`
+            );
+            throw new Error(
+                `Failed to send instantional/upgrade Proposal or receive valid response: ${
+                    errorsFound[0].message
+                }`
+            );
+        }
+
+        // For TS, need to cast all elements to ProposalResponses. We know all are at this point.
+        const proposalResponses = responses as FabricClient.ProposalResponse[];
+
+        const badResponsesFound = proposalResponses.filter(
+            (response) => response.response && response.response.status !== 200
+        );
+
+        if (badResponsesFound.length > 0) {
+            logger.error(
+                `Response null or has a status not equal to 200: ${inspect(
+                    badResponsesFound[0]
+                )}`
+            );
+            throw new Error(
+                `Response null or has a status not equal to 200: ${inspect(
+                    badResponsesFound[0]
+                )}`
+            );
+        }
+    }
+
+    static getPeerNamesAsStringForChannel(
+        channel: FabricClient.Channel
+    ): string {
+        const peerNames: string[] = [];
+        for (let peer of channel.getPeers()) {
+            peerNames.push(peer.getName());
+        }
+
+        return peerNames.join(',');
+    }
+
+    static registerAndConnectTxEventHub(
+        channel: FabricClient.Channel,
+        deployTxId: string
+    ) {
+        const peerName = channel.getPeers()[0].getName();
+        const eventHub = channel.newChannelEventHub(peerName);
+
+        eventHub.registerTxEvent(
+            deployTxId,
+            (txId, code) => {
+                if (code === 'VALID') {
+                    logger.info(
+                        `Transaction event received: transaction (${txId}) successful with status: ${code}`
+                    );
+                } else {
+                    logger.error(
+                        `Transaction event received: transaction (${txId}) failed with status: ${code}`
+                    );
+
+                    throw new Error(
+                        `Transaction event received: transaction (${txId}) failed with status: ${code}`
+                    );
+                }
+            },
+            (err) => {
+                logger.error(
+                    `Error whilst waiting for transaction event: ${inspect(
+                        err
+                    )}`
+                );
+                throw err;
+            },
+            {
+                // These configuration settings mean we don't have to manually unregister and disconnect
+                // the eventHub after the event has been received
+                unregister: true,
+                disconnect: true
+            }
+        );
+
+        eventHub.connect(true);
+    }
+
+    static async sendChaincodeProposalToPeers(
+        channel: FabricClient.Channel,
+        deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest,
+        upgrade: boolean,
+        timeout?: number
+    ): Promise<
+        [(FabricClient.ProposalResponse | Error)[], FabricClient.Proposal]
+    > {
+        let proposalResponses: [
+            (FabricClient.ProposalResponse | Error)[],
+            FabricClient.Proposal
+        ];
+
+        if (upgrade) {
+            logger.debug('Upgrading chaincode...');
+            proposalResponses = await channel.sendUpgradeProposal(
+                deploymentOptions,
+                timeout
+            );
+        } else {
+            logger.debug('Instantiating chaincode...');
+            proposalResponses = await channel.sendInstantiateProposal(
+                deploymentOptions,
+                timeout
+            );
+        }
+
+        return proposalResponses;
+    }
 
     constructor(
         networkConfigFilePath: string,
@@ -164,17 +294,6 @@ export default class FabricHelper {
     }
 
     // APIs
-    public getPeerNamesAsStringForChannel(
-        channel: FabricClient.Channel
-    ): string {
-        const peerNames: string[] = [];
-        for (let peer of channel.getPeers()) {
-            peerNames.push(peer.getName());
-        }
-
-        return peerNames.join(',');
-    }
-
     public getChannelForOrg(org: string): FabricClient.Channel {
         return this.channels[org];
     }
@@ -225,117 +344,6 @@ export default class FabricHelper {
             },
             skipPersistence: true
         });
-    }
-
-    public async sendChaincodeProposalToPeers(
-        channel: FabricClient.Channel,
-        deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest,
-        upgrade: boolean,
-        timeout?: number
-    ): Promise<
-        [(FabricClient.ProposalResponse | Error)[], FabricClient.Proposal]
-    > {
-        let proposalResponses: [
-            (FabricClient.ProposalResponse | Error)[],
-            FabricClient.Proposal
-        ];
-
-        if (upgrade) {
-            logger.debug('Upgrading chaincode...');
-            proposalResponses = await channel.sendUpgradeProposal(
-                deploymentOptions,
-                timeout
-            );
-        } else {
-            logger.debug('Instantiating chaincode...');
-            proposalResponses = await channel.sendInstantiateProposal(
-                deploymentOptions,
-                timeout
-            );
-        }
-
-        return proposalResponses;
-    }
-
-    public inspectProposalResponses(
-        proposalResult: [
-            (FabricClient.ProposalResponse | Error)[],
-            FabricClient.Proposal
-        ]
-    ): void {
-        const responses: (FabricClient.ProposalResponse | Error)[] =
-            proposalResult[0];
-
-        const errorsFound = responses.filter(
-            (response) => response instanceof Error
-        ) as Error[];
-
-        if (errorsFound.length > 0) {
-            logger.error(
-                `Failed to send instantional/upgrade Proposal or receive valid response: ${
-                    errorsFound[0].message
-                }`
-            );
-            throw new Error(
-                `Failed to send instantional/upgrade Proposal or receive valid response: ${
-                    errorsFound[0].message
-                }`
-            );
-        }
-
-        // For TS, need to cast all elements to ProposalResponses. We know all are at this point.
-        const proposalResponses = responses as FabricClient.ProposalResponse[];
-
-        const badResponsesFound = proposalResponses.filter(
-            (response) => response.response && response.response.status !== 200
-        );
-
-        if (badResponsesFound.length > 0) {
-            logger.error(
-                `Response null or has a status not equal to 200: ${inspect(
-                    badResponsesFound[0]
-                )}`
-            );
-            throw new Error(
-                `Response null or has a status not equal to 200: ${inspect(
-                    badResponsesFound[0]
-                )}`
-            );
-        }
-    }
-    public registerAndConnectTxEventHub(
-        channel: FabricClient.Channel,
-        deployTxId: string
-    ) {
-        const peerName = channel.getPeers()[0].getName();
-        const eventHub = channel.newChannelEventHub(peerName);
-
-        eventHub.registerTxEvent(
-            deployTxId,
-            (txId, code) => {
-                if (code === 'VALID') {
-                    console.log(
-                        `Instantiate transaction successful: ${txId}, ${code}`
-                    );
-                } else {
-                    console.log(
-                        `Instaniate transaction not VALID: ${txId}, ${code}`
-                    );
-                }
-            },
-            (err) => {
-                console.log(`Error: ${inspect(err)}`);
-                throw err;
-            },
-            {
-                // These configuration settings mean we don't have to manually unregister and disconnect
-                // the eventHub after the event has been received
-                unregister: true,
-                disconnect: true
-            }
-        );
-
-        eventHub.connect(true);
     }
 }
 
