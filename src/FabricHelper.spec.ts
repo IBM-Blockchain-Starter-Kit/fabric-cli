@@ -119,7 +119,7 @@ describe(`FabricHelper Static Functions`, () => {
             };
 
             expectedError = new Error(
-                'Failed to send instantiate/upgrade Proposal or receive valid response: Bad response'
+                'Failed to send proposal or receive valid response: Bad response'
             );
 
             expect(callFunc).toThrowError(expectedError);

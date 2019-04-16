@@ -60,12 +60,12 @@ export default class FabricHelper {
 
         if (errorsFound.length > 0) {
             logger.error(
-                `Failed to send instantiate/upgrade Proposal or receive valid response: ${
+                `Failed to send proposal or receive valid response: ${
                     errorsFound[0].message
                 }`
             );
             throw new Error(
-                `Failed to send instantiate/upgrade Proposal or receive valid response: ${
+                `Failed to send proposal or receive valid response: ${
                     errorsFound[0].message
                 }`
             );
