@@ -18,17 +18,19 @@ import * as path from 'path';
 import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
 import { inspect } from 'util';
+import { DEFAULT_CHAINCODE_LANGUAGE } from './constants';
 
 const logger = FabricHelper.getLogger('install-chaincode');
 
 export async function installChaincode(
-    networkConfigFilePath,
-    channelName,
-    chaincodeName,
-    chaincodePath,
-    chaincodeVersion,
-    org,
-    cryptoDir
+    networkConfigFilePath: string,
+    channelName: string,
+    chaincodeName: string,
+    chaincodePath: string,
+    chaincodeVersion: string,
+    org: string,
+    cryptoDir: string,
+    chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_LANGUAGE
 ): Promise<void> {
     logger.debug(
         `============ Install chaincode called for organization: ${org} ============`
@@ -60,7 +62,8 @@ export async function installChaincode(
         targets: installTargets,
         chaincodePath: chaincodePath,
         chaincodeId: chaincodeName,
-        chaincodeVersion: chaincodeVersion
+        chaincodeVersion: chaincodeVersion,
+        chaincodeType: chaincodeType
     };
 
     logger.debug(
