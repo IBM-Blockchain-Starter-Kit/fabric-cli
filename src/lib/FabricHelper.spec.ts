@@ -1,15 +1,15 @@
 import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
 
-const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../testData/example-network-config.json`;
+const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
 let exampleNetworkConfig: any = require(PATH_TO_EXAMPLE_NETWORK_CONFIG);
 exampleNetworkConfig = exampleNetworkConfig['network-config'];
 
 const EXAMPLE_ORGS = ['org1', 'org2', 'org3'];
 const EXAMPLE_UNKNOWN_ORG = 'orgUnknown';
 const EXAMPLE_CHANNEL_NAME = 'examplechannel';
-const EXAMPLE_KEY_VALUE_STORE_BASE_PATH = `${__dirname}/../testData`;
-const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}`;
+const EXAMPLE_KEY_VALUE_STORE_BASE_PATH = `${__dirname}/../../testData`;
+const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}/..`;
 const EXAMPLE_ORG_MSP = 'exampleOrgMSP';
 
 const examplePeer1 = new FabricClient.Peer('grpc://peer1.example.com', {

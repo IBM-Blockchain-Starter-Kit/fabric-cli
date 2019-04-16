@@ -5,13 +5,13 @@ import FabricHelper from './FabricHelper';
 const EXAMPLE_CHAINCODE_NAME = 'examplechaincode';
 const EXAMPLE_CHAINCODE_VERSION = 2;
 const EXAMPLE_CHANNEL_NAME = 'examplechannel';
-const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}`;
+const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}/..`;
 const EXAMPLE_ARGS = [];
 const EXAMPLE_FUNCTION_NAME = '';
 const EXAMPLE_TIMEOUT = 10000;
 const EXAMPLE_ENDORSEMENT_POLICY = undefined;
 
-const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../testData/example-network-config.json`;
+const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
 let exampleNetworkConfig: any = require(PATH_TO_EXAMPLE_NETWORK_CONFIG);
 exampleNetworkConfig = exampleNetworkConfig['network-config'];
 

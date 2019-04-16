@@ -6,9 +6,9 @@ const EXAMPLE_CHAINCODE_PATH = '/tmp/my_chaincode_src_dir/';
 const EXAMPLE_CHAINCODE_NAME = 'examplechaincode';
 const EXAMPLE_CHAINCODE_VERSION = '002';
 const EXAMPLE_CHANNEL_NAME = 'examplechannel';
-const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}`;
+const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}/..`;
 
-const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../testData/example-network-config.json`;
+const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
 let exampleNetworkConfig: any = require(PATH_TO_EXAMPLE_NETWORK_CONFIG);
 exampleNetworkConfig = exampleNetworkConfig['network-config'];
 
