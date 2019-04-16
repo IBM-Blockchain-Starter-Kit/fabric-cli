@@ -2,7 +2,6 @@ import * as FabricClient from 'fabric-client';
 import { instantiateChaincode } from './instantiate-chaincode';
 import FabricHelper from './FabricHelper';
 
-const EXAMPLE_CHAINCODE_PATH = '/tmp/my_chaincode_src_dir/';
 const EXAMPLE_CHAINCODE_NAME = 'examplechaincode';
 const EXAMPLE_CHAINCODE_VERSION = 2;
 const EXAMPLE_CHANNEL_NAME = 'examplechannel';
