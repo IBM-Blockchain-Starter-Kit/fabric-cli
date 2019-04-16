@@ -171,7 +171,7 @@ async function deployChaincode(
         deploymentOptions.txId.getTransactionID()
     );
 
-    const request = {
+    const request: FabricClient.TransactionRequest = {
         txId: deploymentOptions.txId,
         proposalResponses: proposalResponses[0] as FabricClient.ProposalResponse[],
         proposal: proposalResponses[1]
@@ -179,5 +179,5 @@ async function deployChaincode(
 
     logger.debug(`Calling sendTransaction() with request: ${inspect(request)}`);
 
-    await channel.sendTransaction(request);
+    await channel.sendTransaction(request, timeout);
 }
