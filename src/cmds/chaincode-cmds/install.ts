@@ -54,21 +54,24 @@ export function builder(yargs) {
             type: 'string'
         })
         .check(function(argv) {
-            if (!process.env.GOPATH) {
-                throw new Error(
-                    'GOPATH environment is not set. Environment setting required to deploy chaincode'
+            if (!argv['cc-type'] || argv['cc-type'] === 'golang') {
+                if (!process.env.GOPATH) {
+                    throw new Error(
+                        'GOPATH environment is not set. Environment setting required to deploy chaincode'
+                    );
+                }
+                let absolutePathChaincode = path.join(
+                    process.env.GOPATH,
+                    'src',
+                    argv['src-dir']
                 );
-            }
-            let absolutePathChaincode = path.join(
-                process.env.GOPATH,
-                'src',
-                argv['src-dir']
-            );
-            if (!fs.existsSync(absolutePathChaincode)) {
-                throw new Error(
-                    'Could not find absolute path for chaincode based on GOPATH variable and --src-dir argument.  Absolute path built: ' +
-                        absolutePathChaincode
-                );
+
+                if (!fs.existsSync(absolutePathChaincode)) {
+                    throw new Error(
+                        'Could not find absolute path for chaincode based on GOPATH variable and --src-dir argument.  Absolute path built: ' +
+                            absolutePathChaincode
+                    );
+                }
             }
 
             return true;

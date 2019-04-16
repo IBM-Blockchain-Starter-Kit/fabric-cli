@@ -100,6 +100,11 @@ async function installChaincodeOnPeersInRequest(
     ];
 
     try {
+        logger.debug(
+            `calling FabricClient.installchaincode with request: ${inspect(
+                request
+            )}`
+        );
         proposalResponses = await client.installChaincode(request);
     } catch (err) {
         logger.error(`Failed to send install proposal due to error: ` + err);
