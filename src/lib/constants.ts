@@ -1,2 +1,2 @@
 import * as FabricClient from 'fabric-client';
-export const DEFAULT_CHAINCODE_LANGUAGE: FabricClient.ChaincodeType = 'golang';
+export const DEFAULT_CHAINCODE_TYPE: FabricClient.ChaincodeType = 'golang';

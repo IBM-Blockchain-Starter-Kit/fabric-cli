@@ -18,7 +18,7 @@ import * as path from 'path';
 import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
 import { inspect } from 'util';
-import { DEFAULT_CHAINCODE_LANGUAGE } from './constants';
+import { DEFAULT_CHAINCODE_TYPE } from './constants';
 
 const logger = FabricHelper.getLogger('install-chaincode');
 
@@ -30,7 +30,7 @@ export async function installChaincode(
     chaincodeVersion: string,
     org: string,
     cryptoDir: string,
-    chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_LANGUAGE
+    chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE
 ): Promise<void> {
     logger.debug(
         `============ Install chaincode called for organization: ${org} ============`

@@ -15,14 +15,13 @@ limitations under the License.
 
 'use strict';
 const yargs = require('yargs');
-const winston = require('winston');
 
 yargs
-	.usage('$0 <cmd> [args]')
-	.commandDir('cmds')
-	.help()
-	.strict()
-	.recommendCommands()
-	.epilogue(
-		'For more information visit https://github.ibm.com/BlockchainLabs/fabric-cli'
-	).argv;
+    .usage('$0 <cmd> [args]')
+    .commandDir('./dist/cmds')
+    .help()
+    .strict()
+    .recommendCommands()
+    .epilogue(
+        'For more information visit https://github.ibm.com/BlockchainLabs/fabric-cli'
+    ).argv;

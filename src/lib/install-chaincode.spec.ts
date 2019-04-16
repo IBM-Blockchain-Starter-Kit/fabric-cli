@@ -1,7 +1,7 @@
 import * as FabricClient from 'fabric-client';
 import { installChaincode } from './install-chaincode';
 import FabricHelper from './FabricHelper';
-import { DEFAULT_CHAINCODE_LANGUAGE } from './constants';
+import { DEFAULT_CHAINCODE_TYPE } from './constants';
 
 const EXAMPLE_CHAINCODE_PATH = '/tmp/my_chaincode_src_dir/';
 const EXAMPLE_CHAINCODE_NAME = 'examplechaincode';
@@ -60,7 +60,7 @@ describe('Install chaincode', () => {
                 chaincodePath: EXAMPLE_CHAINCODE_PATH,
                 chaincodeId: EXAMPLE_CHAINCODE_NAME,
                 chaincodeVersion: EXAMPLE_CHAINCODE_VERSION,
-                chaincodeType: DEFAULT_CHAINCODE_LANGUAGE
+                chaincodeType: DEFAULT_CHAINCODE_TYPE
             };
 
             await installChaincode(
