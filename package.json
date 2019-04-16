@@ -23,7 +23,7 @@
         "yargs": "^10.0.3"
     },
     "bin": {
-        "fabric-cli": "./dist/fabric-cli.js"
+        "fabric-cli": "./fabric-cli.js"
     },
     "devDependencies": {
         "@types/jest": "^24.0.11",
