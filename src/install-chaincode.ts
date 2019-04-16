@@ -29,10 +29,15 @@ export async function installChaincode(
     chaincodeVersion,
     org,
     cryptoDir
-) {
+): Promise<void> {
     logger.debug(
         `============ Install chaincode called for organization: ${org} ============`
     );
+
+    let installProposalResponses: [
+        (FabricClient.ProposalResponse | Error)[],
+        FabricClient.Proposal
+    ];
 
     const helper: FabricHelper = new FabricHelper(
         networkConfigFilePath,
@@ -62,12 +67,16 @@ export async function installChaincode(
         `Calling client.installChaincode with request: ${inspect(request)}`
     );
 
-    const InstallProposalResponses = await installChaincodeOnPeersInRequest(
-        client,
-        request
-    );
+    try {
+        installProposalResponses = await installChaincodeOnPeersInRequest(
+            client,
+            request
+        );
+    } catch (err) {
+        throw err;
+    }
 
-    FabricHelper.inspectProposalResponses(InstallProposalResponses);
+    FabricHelper.inspectProposalResponses(installProposalResponses);
 
     const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
         channel
@@ -90,16 +99,8 @@ async function installChaincodeOnPeersInRequest(
     try {
         proposalResponses = await client.installChaincode(request);
     } catch (err) {
-        logger.error(
-            `Failed to send install proposal due to error: ` + err.stack
-                ? err.stack
-                : err
-        );
-        throw new Error(
-            `Failed to send install proposal due to error: ` + err.stack
-                ? err.stack
-                : err
-        );
+        logger.error(`Failed to send install proposal due to error: ` + err);
+        throw new Error(`Failed to send install proposal due to error: ` + err);
     }
 
     return proposalResponses;
