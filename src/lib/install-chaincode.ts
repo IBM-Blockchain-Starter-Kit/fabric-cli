@@ -86,7 +86,7 @@ export async function installChaincode(
     );
 
     logger.info(
-        `Successfully installed chaincode on peers (${peerNames}) for organization ${org}`
+        `Successfully installed chaincode (${chaincodeName}) on peers (${peerNames}) for organization ${org}`
     );
 }
 
