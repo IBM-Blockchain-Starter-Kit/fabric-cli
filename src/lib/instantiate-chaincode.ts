@@ -18,6 +18,7 @@ import * as path from 'path';
 import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
 import { inspect } from 'util';
+import { DEFAULT_CHAINCODE_TYPE } from './constants';
 
 const logger = FabricHelper.getLogger('instantiate-chaincode');
 
@@ -26,19 +27,19 @@ export async function instantiateChaincode(
     channelName: string,
     chaincodeName: string,
     chaincodeVersion: number,
-    args: string[],
     functionName: string,
+    args: string[],
     org: string,
     timeout: number,
     endorsementPolicy: any,
-    cryptoDir: string
+    cryptoDir: string,
+    chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE
 ): Promise<void> {
     logger.debug(
         `============ Deploying smart contract to all Peers on Channel ${chaincodeName} for organization ${org} ============`
     );
 
     let tx_id: FabricClient.TransactionId = null;
-    const chaincodeType: FabricClient.ChaincodeType = 'golang';
 
     const helper = new FabricHelper(
         networkConfigFilePath,
@@ -133,18 +134,21 @@ async function checkIsUpgradeAndGetVersion(
     );
 
     const chaincodes = instantiatedChaincode.chaincodes;
-    console.log(`chaincode to install:${chaincodeName}`);
+    logger.debug(
+        `Querying channel for instantiated chaincodes with name:${chaincodeName}`
+    );
     for (let i = 0; i < chaincodes.length; i++) {
-        console.log(
-            `Chaincode is installed: ${chaincodes[i].name}, version: ${
+        logger.debug(
+            `Found instantiated chaincode: ${chaincodes[i].name}, version: ${
                 chaincodes[i].version
             }`
         );
         if (chaincodes[i].name === chaincodeName) {
             newChaincodeVersion = parseInt(chaincodes[i].version) + 1;
-            // Update flag to indicate whether to instantiate or upgrade chaincode
             isUpgrade = true;
-            break;
+            logger.info(
+                `Found instantiated chaincode with same name (${chaincodeName})... upgrading to version ${newChaincodeVersion}`
+            );
         }
     }
 
