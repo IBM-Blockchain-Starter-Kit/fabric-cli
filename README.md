@@ -1,21 +1,31 @@
 # Overview
 The fabric-cli project is a Node.js application written using TypeScript, with the aim of making chaincode deployment simple.
+The tool can be used to install, instantiate/upgrade and invoke chaincode running on any v1.4.x fabric network by creating a `net-config.json` (A number of example `net-config.json` files are included in the `examples/` directory).
 
+The tool supports the following smart contract languages: Java, Golang and Node.js.
 
-## Configuring the cli
+When attempting to deploy chaincode to a fabric network, the private key and certificate of the target Organizations's admin user are required:
+- For IBP v2 these credentials can be exported via the `Wallet` tab, selecting the admin identity and clicking `Export Identity`. The exported credentials are base64 encoded and can be decoded in a Node.js runtime instance using:
+
+      new Buffer('string_to_be_decoded', 'base64').toString()
+- For local networks deployed using the IBM Blockchain Platform VSCode plugin, these credentials can be found in:
+  
+      ~/.fabric-vscode/local_fabric-ops/wallet/Admin@org1.example.com/
+
+## Configuring the CLI
 ---
 
 1. Go to root directory of project
-2. Run `npm install`
-3. Run `npm run build` to compile from TS into JS
-4. Run `chmod +x fabric-cli.js` to make the file executable
-5. Run the command `npm link`
-6. Run the command `fabric-cli --version` to confirm the command is available from the cli
+2. Run `'npm install'`
+3. Run `'npm run build'` to compile from TS into JS
+4. Run `'chmod +x fabric-cli.js'` to make the file executable
+5. Run the command `'npm link'`
+6. Run the command `'fabric-cli --version'` to confirm the command is available from the cli
    
-Note: Remember to run `npm unlink` once done to keep `npm` clean!
+Note: Remember to run `'npm unlink'` once done to keep `npm` clean!
 
 
-## Example uses
+## Available Commands
 ---
 
 Currently the following commands are implemented:
@@ -42,15 +52,16 @@ Options:
                                                              [string] [required]
   --cc-type     The langauge in which your chaincode is written, default=golang.
                                     [string] [choices: "golang", "java", "node"]
-  --src-dir     Relative path where the chaincode is located with respect to
-                GOPATH/src                                   [string] [required]
+  --src-dir     Relative path to where the chaincode directory is located (for
+                golang this is with respect to GOPATH/src)   [string] [required]
+  --channel     Name of the channel to install chaincode     [string] [required]
                
 Example:
-node fabric-cli.js chaincode install --net-config /Users/jorgedr/Documents/visual-workspaces/ccInstallation/app/network-config.json --crypto-dir /Users/jorgedr/Documents/visual-workspaces/ccInstallation/artifacts/channel/crypto-config --cc-name ping8 --src-dir chaincode  --org org1 --cc-version 1.0 --channel channel1
+> fabric-cli chaincode install --net-config /Users/jvines@uk.ibm.com/blockchain/git_repos/tooling/fabric-cli/examples/example-local-net-config.json --org org1 --cc-name marbles_chaincode  --cc-version 4 --channel mychannel --src-dir marbles/ --crypto-dir ./
 
 ```
 
-### Instantiate chaincode
+### Instantiate Chaincode
 
 ```
 fabric-cli chaincode instantiate
@@ -85,11 +96,11 @@ Options:
                         optional parameter).            [string] [default: null]
   
 Example:
-node fabric-cli.js chaincode instantiate --net-config /Users/jorgedr/Documents/visual-workspaces/ccInstallation/app/network-config.json --crypto-dir /Users/jorgedr/Documents/visual-workspaces/ccInstallation/artifacts/channel/crypto-config --cc-name ping6  --org org1 --cc-version 1.0 --channel channel1 --init-args arg1 arg2 arg3 
+> fabric-cli chaincode instantiate --net-config /Users/jvines@uk.ibm.com/blockchain/git_repos/tooling/fabric-cli/examples/example-local-net-config.json --org org1 --cc-name marbles_chaincode  --cc-version 4 --channel mychannel  --crypto-dir ./ --init-function initMarble --init-args marble2 yellow 16 jason
   ```
 
 
-### Invoke chaincode
+### Invoke Chaincode
 
 
 ```
@@ -117,4 +128,6 @@ Options:
   --timeout      Specify number of milliseconds to wait on the response before
                  rejecting                            [number] [default: 120000]
 
+
+> fabric-cli chaincode invoke --cc-name marbles_chaincode --channel mychannel --invoke-fn initMarble --org org1 --net-config /Users/jvines@uk.ibm.com/blockchain/git_repos/tooling/fabric-cli/examples/example-local-net-config.json --crypto-dir ./ --invoke-args marble2 blue 35 darren
 ```

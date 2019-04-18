@@ -43,7 +43,7 @@ export function builder(yargs) {
         .option('src-dir', {
             demandOption: true,
             describe:
-                'Relative path where the chaincode is located with respect to GOPATH/src ',
+                'Relative path to where the chaincode directory is located (for golang this is with respect to GOPATH/src)',
             requiresArg: true,
             type: 'string'
         })
