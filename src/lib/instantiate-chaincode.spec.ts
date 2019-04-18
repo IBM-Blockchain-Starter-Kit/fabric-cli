@@ -8,7 +8,7 @@ const EXAMPLE_CHANNEL_NAME = 'examplechannel';
 const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}/..`;
 const EXAMPLE_ARGS = [];
 const EXAMPLE_FUNCTION_NAME = '';
-const EXAMPLE_TIMEOUT = 10000;
+const EXAMPLE_TIMEOUT = 120000;
 const EXAMPLE_ENDORSEMENT_POLICY = undefined;
 
 const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
@@ -65,8 +65,8 @@ describe('instantiateChaincode', () => {
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_CHAINCODE_VERSION,
-            EXAMPLE_ARGS,
             EXAMPLE_FUNCTION_NAME,
+            EXAMPLE_ARGS,
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             EXAMPLE_ENDORSEMENT_POLICY,
@@ -94,8 +94,8 @@ describe('instantiateChaincode', () => {
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_CHAINCODE_VERSION,
-            EXAMPLE_ARGS,
             EXAMPLE_FUNCTION_NAME,
+            EXAMPLE_ARGS,
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             EXAMPLE_ENDORSEMENT_POLICY,
@@ -132,8 +132,8 @@ describe('instantiateChaincode', () => {
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_CHAINCODE_VERSION,
-            EXAMPLE_ARGS,
             EXAMPLE_FUNCTION_NAME,
+            EXAMPLE_ARGS,
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             EXAMPLE_ENDORSEMENT_POLICY,
