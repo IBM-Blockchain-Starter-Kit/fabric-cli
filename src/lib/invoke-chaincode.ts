@@ -20,21 +20,28 @@ import * as FabricClient from 'fabric-client';
 import { inspect } from 'util';
 const logger = FabricHelper.getLogger('invoke-chaincode');
 
+interface ResponseObject {
+    status: number;
+    message: string;
+    payload: string;
+}
+
 export async function invokeChaincode(
     networkConfigFilePath: string,
     channelName: string,
     chaincodeName: string,
-    args: string[],
     functionName: string,
+    args: string[],
     org: string,
     queryOnly: boolean,
     timeout: number,
     cryptoDir: string
-): Promise<FabricClient.Response> {
+): Promise<ResponseObject> {
     logger.debug(
         `Invoking method (${functionName}) on chaincode (${chaincodeName}) with arguments (${args})`
     );
 
+    let response: ResponseObject;
     let proposalResponses: FabricClient.ProposalResponseObject;
     const fabricHelper = new FabricHelper(
         networkConfigFilePath,
@@ -80,48 +87,74 @@ export async function invokeChaincode(
 
     FabricHelper.inspectProposalResponses(proposalResponses);
 
-    let response: FabricClient.Response;
-    // Is this a query or a transaction to update the ledger?
-    if (queryOnly) {
-        logger.info(`Successfully queried ${chaincodeName}`);
-        let responses = proposalResponses[0] as FabricClient.ProposalResponse[];
-        response = {
-            status: responses[0].response.status,
-            message: responses[0].response.message,
-            payload: responses[0].response.payload
-        };
+    if (!queryOnly) {
+        logger.info('Sending transaction to orderer...');
 
+        await sendChaincodeInvokeProposal(
+            channel,
+            tx_id.getTransactionID(),
+            proposalResponses as [
+                FabricClient.ProposalResponse[],
+                FabricClient.Proposal
+            ],
+            timeout
+        );
+    }
+
+    response = getResponseFromProposalResponseObject(proposalResponses);
+
+    if (response.status === 200) {
+        logger.info('Successfully sent transaction to the orderer');
+        logger.info(`Transaction response:\n ${inspect(response)}`);
         return response;
     } else {
-        logger.info('Proceeding with processing of invocation proposal.');
-
-        // Commented out so the the project still builds.
-        // TODO!
-        // const transactionResult = fabricHelper.processChaincodeInvokeProposal(
-        //     tx_id.getTransactionID(),
-        //     proposalResponses,
-        //     org
-        // );
-        // // We need get the payload back when we process the invoke and add it to the response object.
-        // response = {
-        //     status: transactionResult[0].status,
-        //     message: transactionResult[0].info,
-        //     payload: null
-        // };
-
-        if (response.status === 200) {
-            logger.info('Successfully sent transaction to the orderer');
-            return response;
-        } else {
-            var errorMsg =
-                'Failed to complete the transaction or query the ledger. Error code: ' +
-                response.status;
-            logger.error(errorMsg);
-            throw new Error(errorMsg);
-        }
+        logger.error(
+            `Failed to complete invoke transaction the ledger. Error code:  ${
+                response.status
+            }`
+        );
+        throw new Error(
+            `Failed to complete invoke transaction the ledger. Error code:  ${
+                response.status
+            }`
+        );
     }
-    // .catch((err) => {
-    //     logger.error('Failed to send invoke transaction: ' + err);
-    //     throw new Error('Failed to invoke transaction: ' + err);
-    // });
+}
+
+function getResponseFromProposalResponseObject(
+    proposalResponses: FabricClient.ProposalResponseObject
+): ResponseObject {
+    let responses = proposalResponses[0] as FabricClient.ProposalResponse[];
+    return {
+        status: responses[0].response.status,
+        message: responses[0].response.message,
+        payload: responses[0].response.payload.toString()
+    };
+}
+
+async function sendChaincodeInvokeProposal(
+    channel: FabricClient.Channel,
+    transactionId: string,
+    proposalResult: [FabricClient.ProposalResponse[], FabricClient.Proposal],
+    timeout: number
+) {
+    const listenForTxEvent = FabricHelper.registerAndConnectTxEventHub(
+        channel,
+        transactionId
+    );
+
+    const proposalResponses = proposalResult[0];
+    const proposal = proposalResult[1];
+
+    const request = {
+        proposalResponses: proposalResponses,
+        proposal: proposal
+    };
+    const broadcastResponse = await channel.sendTransaction(request, timeout);
+
+    FabricHelper.inspectBroadcastResponse(broadcastResponse);
+
+    logger.debug(`Waiting for transaction commit event...`);
+
+    await listenForTxEvent;
 }

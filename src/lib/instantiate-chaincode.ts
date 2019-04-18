@@ -170,7 +170,7 @@ async function deployChaincode(
 
     FabricHelper.inspectProposalResponses(proposalResponses);
 
-    FabricHelper.registerAndConnectTxEventHub(
+    const listenForTxEvent = FabricHelper.registerAndConnectTxEventHub(
         channel,
         deploymentOptions.txId.getTransactionID()
     );
@@ -183,5 +183,11 @@ async function deployChaincode(
 
     logger.debug(`Calling sendTransaction() with request: ${inspect(request)}`);
 
-    await channel.sendTransaction(request, timeout);
+    const broadcastResponse = await channel.sendTransaction(request, timeout);
+
+    FabricHelper.inspectBroadcastResponse(broadcastResponse);
+
+    logger.debug(`Waiting for transaction commit event...`);
+
+    await listenForTxEvent;
 }

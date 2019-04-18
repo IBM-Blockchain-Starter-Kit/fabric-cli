@@ -36,10 +36,11 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
-        .option('invoke-arg', {
+        .option('invoke-args', {
             array: true,
             demandOption: false,
-            describe: 'Value(s) to pass as argument to invoke call.',
+            describe:
+                'Space separated list of arguments to pass into the invoked function',
             requiresArg: false,
             type: 'string',
             default: []
@@ -62,14 +63,14 @@ export function builder(yargs) {
         });
 }
 
-export async function handler(argv): Promise<FabricClient.Response> {
+export async function handler(argv) {
     console.log('Invoking transaction in chaincode');
-    return await invokeChaincode(
+    await invokeChaincode(
         argv['net-config'],
         argv['channel'],
         argv['cc-name'],
-        argv['invoke-arg'],
         argv['invoke-fn'],
+        argv['invoke-args'],
         argv['org'],
         argv['query'],
         argv['timeout'],

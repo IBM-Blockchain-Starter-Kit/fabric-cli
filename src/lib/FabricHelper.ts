@@ -92,6 +92,28 @@ export default class FabricHelper {
         }
     }
 
+    static inspectBroadcastResponse(
+        response: FabricClient.BroadcastResponse
+    ): void {
+        if (response.status !== 'SUCCESS') {
+            logger.error(
+                `sendTransaction returned with an invalid status code: ${
+                    response.status
+                }: ${response.info}`
+            );
+
+            throw new Error(
+                `sendTransaction returned with an invalid status code: ${
+                    response.status
+                }: ${response.info}`
+            );
+        } else {
+            logger.debug(
+                `channel.sendTransaction() returned with status 'SUCCESS'`
+            );
+        }
+    }
+
     static getPeerNamesAsStringForChannel(
         channel: FabricClient.Channel
     ): string {
@@ -106,44 +128,46 @@ export default class FabricHelper {
     static registerAndConnectTxEventHub(
         channel: FabricClient.Channel,
         deployTxId: string
-    ) {
+    ): Promise<void> {
         const peerName = channel.getPeers()[0].getName();
         const eventHub = channel.newChannelEventHub(peerName);
 
-        eventHub.registerTxEvent(
-            deployTxId,
-            (txId, code) => {
-                if (code === 'VALID') {
-                    logger.info(
-                        `Transaction event received: transaction (${txId}) successful with status: ${code}`
-                    );
-                } else {
+        return new Promise(function(resolve, reject) {
+            eventHub.registerTxEvent(
+                deployTxId,
+                (txId, code) => {
+                    if (code === 'VALID') {
+                        logger.info(
+                            `Transaction event received: transaction (${txId}) successful with status: ${code}`
+                        );
+                        resolve();
+                    } else {
+                        logger.error(
+                            `Transaction event received: transaction (${txId}) failed with status: ${code}`
+                        );
+
+                        reject(
+                            `Transaction event received: transaction (${txId}) failed with status: ${code}`
+                        );
+                    }
+                },
+                (err) => {
                     logger.error(
-                        `Transaction event received: transaction (${txId}) failed with status: ${code}`
+                        `Error whilst waiting for transaction event: ${inspect(
+                            err
+                        )}`
                     );
-
-                    throw new Error(
-                        `Transaction event received: transaction (${txId}) failed with status: ${code}`
-                    );
+                    reject(err);
+                },
+                {
+                    // These configuration settings mean we don't have to manually unregister and disconnect
+                    // the eventHub after the event has been received
+                    unregister: true,
+                    disconnect: true
                 }
-            },
-            (err) => {
-                logger.error(
-                    `Error whilst waiting for transaction event: ${inspect(
-                        err
-                    )}`
-                );
-                throw err;
-            },
-            {
-                // These configuration settings mean we don't have to manually unregister and disconnect
-                // the eventHub after the event has been received
-                unregister: true,
-                disconnect: true
-            }
-        );
-
-        eventHub.connect(true);
+            );
+            eventHub.connect(true);
+        });
     }
 
     static async sendChaincodeProposalToPeers(
@@ -233,14 +257,31 @@ export default class FabricHelper {
     }
 
     private newOrderer(client: FabricClient): FabricClient.Orderer {
-        const caRootsPath = this.ORGS.orderer.tls_cacerts;
-        const data = fs.readFileSync(
-            path.join(this.cryptoDirPath, caRootsPath)
-        );
-        const caroots = Buffer.from(data).toString();
-        return client.newOrderer(this.ORGS.orderer.url, {
-            pem: caroots
-        });
+        const serverName: string = this.ORGS.orderer['server-hostname'];
+        let opts: FabricClient.ConnectionOpts = {};
+        if (this.ORGS.orderer.url.includes('grpcs')) {
+            logger.debug(
+                `grcps protocol detected for orderer in ${serverName}`
+            );
+            if (!this.ORGS.orderer['tls_cacerts']) {
+                logger.error(
+                    `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
+                );
+                throw new Error(
+                    `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
+                );
+            }
+            const caRootsPath = this.ORGS.orderer.tls_cacerts;
+            const data = fs.readFileSync(
+                path.join(this.cryptoDirPath, caRootsPath)
+            );
+            const caroots = Buffer.from(data).toString();
+            opts = {
+                pem: caroots
+            };
+        }
+
+        return client.newOrderer(this.ORGS.orderer.url, opts);
     }
     private setupPeers(
         channel: FabricClient.Channel,
@@ -250,19 +291,37 @@ export default class FabricHelper {
         const orgMspId: string = this.ORGS[org].mspid;
 
         for (const key in this.ORGS[org].peers) {
-            const data = fs.readFileSync(
-                path.join(
-                    this.cryptoDirPath,
-                    this.ORGS[org].peers[key]['tls_cacerts']
-                )
+            let opts: FabricClient.ConnectionOpts = {};
+            if (this.ORGS[org].peers[key].requests.includes('grpcs')) {
+                logger.debug(`grcps protocol detected for peers in ${org}`);
+                if (!this.ORGS[org].peers[key]['tls_cacerts']) {
+                    logger.error(
+                        `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
+                    );
+                    throw new Error(
+                        `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
+                    );
+                }
+
+                const data = fs.readFileSync(
+                    path.join(
+                        this.cryptoDirPath,
+                        this.ORGS[org].peers[key]['tls_cacerts']
+                    )
+                );
+
+                logger.debug('\nData from file:');
+                logger.debug(Buffer.from(data).toString());
+
+                opts = {
+                    pem: Buffer.from(data).toString()
+                };
+            }
+
+            const peer = client.newPeer(
+                this.ORGS[org].peers[key].requests,
+                opts
             );
-
-            logger.debug('\nData from file:');
-            logger.debug(Buffer.from(data).toString());
-
-            const peer = client.newPeer(this.ORGS[org].peers[key].requests, {
-                pem: Buffer.from(data).toString()
-            });
             peer.setName(key);
 
             channel.addPeer(peer, orgMspId);
