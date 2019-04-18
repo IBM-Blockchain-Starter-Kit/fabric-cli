@@ -49,7 +49,7 @@ export function builder(yargs) {
             type: 'string',
             default: 'init'
         })
-        .option('init-arg', {
+        .option('init-args', {
             array: true,
             demandOption: false,
             describe: 'Value(s) to pass as argument to instantiation call.',
@@ -101,7 +101,7 @@ export async function handler(argv) {
         argv['cc-name'],
         argv['cc-version'],
         argv['init-function'],
-        argv['init-arg'],
+        argv['init-args'],
         argv['org'],
         argv['timeout'],
         argv['endorsement-policy'],

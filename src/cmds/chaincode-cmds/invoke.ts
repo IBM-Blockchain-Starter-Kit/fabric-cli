@@ -12,10 +12,9 @@ limitations under the License.
 */
 
 import { invokeChaincode } from '../../lib/invoke-chaincode';
-import * as FabricClient from 'fabric-client';
 
 export const command: string = 'invoke';
-export const desc: string = 'Invoke a transaction in the chaincode';
+export const desc: string = 'Invoke a transaction to the chaincode';
 export function builder(yargs) {
     return yargs
         .option('cc-name', {
@@ -32,7 +31,7 @@ export function builder(yargs) {
         })
         .option('invoke-fn', {
             demandOption: true,
-            describe: 'Name of the function to invoke in chaincode',
+            describe: 'Name of the transaction function to invoke in chaincode',
             requiresArg: true,
             type: 'string'
         })
@@ -40,7 +39,7 @@ export function builder(yargs) {
             array: true,
             demandOption: false,
             describe:
-                'Space separated list of arguments to pass into the invoked function',
+                'Space separated list of arguments to pass into the transaction',
             requiresArg: false,
             type: 'string',
             default: []
@@ -48,7 +47,7 @@ export function builder(yargs) {
         .option('query', {
             demandOption: false,
             describe:
-                'Specify if this invocation is just a query to the ledger',
+                'Specifies whether this transaction is just a query or should be submitted to the orderer',
             requiresArg: false,
             type: 'boolean',
             default: false
