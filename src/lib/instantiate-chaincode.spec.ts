@@ -10,7 +10,15 @@ const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}/..`;
 const EXAMPLE_ARGS = [];
 const EXAMPLE_FUNCTION_NAME = '';
 const EXAMPLE_TIMEOUT = 120000;
-const EXAMPLE_ENDORSEMENT_POLICY = undefined;
+const EXAMPLE_ENDORSEMENT_POLICY = {
+    identities: [
+        { role: { name: 'member', mspId: 'org1' } },
+        { role: { name: 'member', mspId: 'org2' } }
+    ],
+    policy: {
+        '1-of': [{ 'signed-by': 0 }, { 'signed-by': 1 }]
+    }
+};
 const EXAMPLE_CHAINCODE_TYPE_NODE = 'node';
 
 const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
@@ -46,7 +54,8 @@ const exampleDeploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest 
     chaincodeId: EXAMPLE_CHAINCODE_NAME,
     chaincodeVersion: EXAMPLE_CHAINCODE_VERSION.toString(),
     args: EXAMPLE_ARGS,
-    txId: exampleTx
+    txId: exampleTx,
+    'endorsement-policy': EXAMPLE_ENDORSEMENT_POLICY
 };
 
 const exampleDeploymentOptionsDefaultChaincodeType: FabricClient.ChaincodeInstantiateUpgradeRequest = {
@@ -54,7 +63,8 @@ const exampleDeploymentOptionsDefaultChaincodeType: FabricClient.ChaincodeInstan
     chaincodeId: EXAMPLE_CHAINCODE_NAME,
     chaincodeVersion: EXAMPLE_CHAINCODE_VERSION.toString(),
     args: EXAMPLE_ARGS,
-    txId: exampleTx
+    txId: exampleTx,
+    'endorsement-policy': EXAMPLE_ENDORSEMENT_POLICY
 };
 
 describe('instantiateChaincode', () => {
@@ -101,7 +111,7 @@ describe('instantiateChaincode', () => {
             EXAMPLE_ARGS,
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
-            EXAMPLE_ENDORSEMENT_POLICY,
+            JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CRYPTO_DIR_PATH,
             EXAMPLE_CHAINCODE_TYPE_NODE
         );
@@ -131,7 +141,7 @@ describe('instantiateChaincode', () => {
             EXAMPLE_ARGS,
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
-            EXAMPLE_ENDORSEMENT_POLICY,
+            JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CRYPTO_DIR_PATH,
             EXAMPLE_CHAINCODE_TYPE_NODE
         );
@@ -173,7 +183,7 @@ describe('instantiateChaincode', () => {
             EXAMPLE_ARGS,
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
-            EXAMPLE_ENDORSEMENT_POLICY,
+            JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CRYPTO_DIR_PATH,
             EXAMPLE_CHAINCODE_TYPE_NODE
         );
@@ -204,7 +214,7 @@ describe('instantiateChaincode', () => {
             EXAMPLE_ARGS,
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
-            EXAMPLE_ENDORSEMENT_POLICY,
+            JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CRYPTO_DIR_PATH
         );
 

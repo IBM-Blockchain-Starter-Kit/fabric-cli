@@ -113,7 +113,6 @@ function buildDeploymentOptions(
     }
     if (endorsementPolicy) {
         // TODO: Test that endorsement policy is actuall set on the channel
-        // https://fabric-sdk-node.github.io/global.html#ChaincodeInstantiateUpgradeRequest
         deploymentOptions['endorsement-policy'] = JSON.parse(endorsementPolicy);
         logger.info('The endorsementPolicy value: ' + endorsementPolicy);
     }
