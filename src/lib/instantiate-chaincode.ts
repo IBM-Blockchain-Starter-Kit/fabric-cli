@@ -14,11 +14,11 @@
  *  limitations under the License.
  */
 
-import * as path from 'path';
-import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
+import * as path from 'path';
 import { inspect } from 'util';
 import { DEFAULT_CHAINCODE_TYPE } from './constants';
+import FabricHelper from './FabricHelper';
 
 const logger = FabricHelper.getLogger('instantiate-chaincode');
 
@@ -63,7 +63,9 @@ export async function instantiateChaincode(
     );
 
     // Override deployment version if one is given. Not yet supported as command line param is currently required.
-    if (!chaincodeVersion) chaincodeVersion = versionToDeploy;
+    if (!chaincodeVersion) {
+        chaincodeVersion = versionToDeploy;
+    }
 
     await channel.initialize();
 
@@ -100,7 +102,7 @@ function buildDeploymentOptions(
     args: string[]
 ): FabricClient.ChaincodeInstantiateUpgradeRequest {
     const deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest = {
-        chaincodeType: chaincodeType,
+        chaincodeType,
         chaincodeId: chaincodeName,
         chaincodeVersion: chaincodeVersion.toString(),
         txId: tx_id
@@ -110,8 +112,8 @@ function buildDeploymentOptions(
         logger.info('functionName: ' + functionName);
     }
     if (endorsementPolicy) {
-        //TODO: Test that endorsement policy is actuall set on the channel
-        //https://fabric-sdk-node.github.io/global.html#ChaincodeInstantiateUpgradeRequest
+        // TODO: Test that endorsement policy is actuall set on the channel
+        // https://fabric-sdk-node.github.io/global.html#ChaincodeInstantiateUpgradeRequest
         deploymentOptions['endorsement-policy'] = JSON.parse(endorsementPolicy);
         logger.info('The endorsementPolicy value: ' + endorsementPolicy);
     }
@@ -161,7 +163,7 @@ async function deployChaincode(
     upgrade: boolean,
     timeout: number
 ) {
-    let proposalResponses = await FabricHelper.sendChaincodeProposalToPeers(
+    const proposalResponses = await FabricHelper.sendChaincodeProposalToPeers(
         channel,
         deploymentOptions,
         upgrade,

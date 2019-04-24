@@ -1,6 +1,7 @@
 import * as FabricClient from 'fabric-client';
-import { instantiateChaincode } from './instantiate-chaincode';
+import { DEFAULT_CHAINCODE_TYPE } from './constants';
 import FabricHelper from './FabricHelper';
+import { instantiateChaincode } from './instantiate-chaincode';
 
 const EXAMPLE_CHAINCODE_NAME = 'examplechaincode';
 const EXAMPLE_CHAINCODE_VERSION = 2;
@@ -10,6 +11,7 @@ const EXAMPLE_ARGS = [];
 const EXAMPLE_FUNCTION_NAME = '';
 const EXAMPLE_TIMEOUT = 120000;
 const EXAMPLE_ENDORSEMENT_POLICY = undefined;
+const EXAMPLE_CHAINCODE_TYPE_NODE = 'node';
 
 const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
 let exampleNetworkConfig: any = require(PATH_TO_EXAMPLE_NETWORK_CONFIG);
@@ -31,14 +33,42 @@ const exampleProposalResponses = [
     exampleProposal
 ];
 
+const exampleTx: FabricClient.TransactionId = {
+    getTransactionID: jest.fn(() => {
+        return 'testTxId';
+    }),
+    getNonce: jest.fn(),
+    isAdmin: jest.fn()
+};
+
+const exampleDeploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest = {
+    chaincodeType: EXAMPLE_CHAINCODE_TYPE_NODE,
+    chaincodeId: EXAMPLE_CHAINCODE_NAME,
+    chaincodeVersion: EXAMPLE_CHAINCODE_VERSION.toString(),
+    args: EXAMPLE_ARGS,
+    txId: exampleTx
+};
+
+const exampleDeploymentOptionsDefaultChaincodeType: FabricClient.ChaincodeInstantiateUpgradeRequest = {
+    chaincodeType: DEFAULT_CHAINCODE_TYPE,
+    chaincodeId: EXAMPLE_CHAINCODE_NAME,
+    chaincodeVersion: EXAMPLE_CHAINCODE_VERSION.toString(),
+    args: EXAMPLE_ARGS,
+    txId: exampleTx
+};
+
 describe('instantiateChaincode', () => {
     beforeEach(async () => {
-        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn();
+        (FabricClient.prototype.newTransactionID as any) = jest.fn(() => {
+            return exampleTx;
+        });
 
+        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn();
+        // Mock as function tries to connect to non existent peers
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
 
-        (FabricHelper.inspectProposalResponses as any) = jest.fn();
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
+        (FabricHelper.inspectBroadcastResponse as any) = jest.fn();
         (FabricClient.Channel.prototype
             .sendInstantiateProposal as any) = jest.fn(() => {
             return exampleProposalResponses;
@@ -60,6 +90,8 @@ describe('instantiateChaincode', () => {
             return { chaincodes: [] } as FabricClient.ChaincodeQueryResponse;
         });
 
+        (FabricHelper.inspectProposalResponses as any) = jest.fn();
+
         await instantiateChaincode(
             PATH_TO_EXAMPLE_NETWORK_CONFIG,
             EXAMPLE_CHANNEL_NAME,
@@ -70,7 +102,8 @@ describe('instantiateChaincode', () => {
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             EXAMPLE_ENDORSEMENT_POLICY,
-            EXAMPLE_CRYPTO_DIR_PATH
+            EXAMPLE_CRYPTO_DIR_PATH,
+            EXAMPLE_CHAINCODE_TYPE_NODE
         );
 
         expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(
@@ -99,7 +132,8 @@ describe('instantiateChaincode', () => {
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             EXAMPLE_ENDORSEMENT_POLICY,
-            EXAMPLE_CRYPTO_DIR_PATH
+            EXAMPLE_CRYPTO_DIR_PATH,
+            EXAMPLE_CHAINCODE_TYPE_NODE
         );
 
         expect(
@@ -108,6 +142,9 @@ describe('instantiateChaincode', () => {
         expect(
             FabricClient.Channel.prototype.sendUpgradeProposal
         ).toBeCalledTimes(0);
+        expect(
+            FabricClient.Channel.prototype.sendInstantiateProposal
+        ).toBeCalledWith(exampleDeploymentOptions, EXAMPLE_TIMEOUT);
     });
 
     it('should call sendUpgradeProposal() with the expected request for upgrade', async () => {
@@ -137,7 +174,8 @@ describe('instantiateChaincode', () => {
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             EXAMPLE_ENDORSEMENT_POLICY,
-            EXAMPLE_CRYPTO_DIR_PATH
+            EXAMPLE_CRYPTO_DIR_PATH,
+            EXAMPLE_CHAINCODE_TYPE_NODE
         );
 
         expect(
@@ -146,5 +184,35 @@ describe('instantiateChaincode', () => {
         expect(
             FabricClient.Channel.prototype.sendUpgradeProposal
         ).toBeCalledTimes(1);
+        expect(
+            FabricClient.Channel.prototype.sendUpgradeProposal
+        ).toBeCalledWith(exampleDeploymentOptions, EXAMPLE_TIMEOUT);
+    });
+
+    it('should default the chaincode type to \'golang\' when no chaincode type is given', async () => {
+        (FabricClient.Channel.prototype
+            .queryInstantiatedChaincodes as any) = jest.fn(() => {
+            return { chaincodes: [] } as FabricClient.ChaincodeQueryResponse;
+        });
+
+        await instantiateChaincode(
+            PATH_TO_EXAMPLE_NETWORK_CONFIG,
+            EXAMPLE_CHANNEL_NAME,
+            EXAMPLE_CHAINCODE_NAME,
+            EXAMPLE_CHAINCODE_VERSION,
+            EXAMPLE_FUNCTION_NAME,
+            EXAMPLE_ARGS,
+            EXAMPLE_ORGS[0],
+            EXAMPLE_TIMEOUT,
+            EXAMPLE_ENDORSEMENT_POLICY,
+            EXAMPLE_CRYPTO_DIR_PATH
+        );
+
+        expect(
+            FabricClient.Channel.prototype.sendInstantiateProposal
+        ).toBeCalledWith(
+            exampleDeploymentOptionsDefaultChaincodeType,
+            EXAMPLE_TIMEOUT
+        );
     });
 });
