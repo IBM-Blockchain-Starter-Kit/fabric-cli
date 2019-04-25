@@ -14,11 +14,11 @@
  *  limitations under the License.
  */
 
-import * as path from 'path';
-import * as fs from 'fs-extra';
-import * as FabricClient from 'fabric-client';
 import * as CaClient from 'fabric-ca-client';
+import * as FabricClient from 'fabric-client';
+import * as fs from 'fs-extra';
 import * as log4js from 'log4js';
+import * as path from 'path';
 import { inspect } from 'util';
 
 const logger = log4js.getLogger('FabricHelper');
@@ -31,27 +31,19 @@ logger.setLevel(LOGGING_LEVEL);
 FabricClient.setLogger(logger);
 
 export default class FabricHelper {
-    private clients: object;
-    private channels: object;
-    private ORGS: any;
-    private caClients: any;
 
-    private channel: string;
-    private keyValueStoreBasePath: string;
-    private cryptoDirPath: string;
-
-    static getLogger(moduleName: string, loggingLevel: string = 'INFO') {
+    public static getLogger(moduleName: string, loggingLevel: string = 'INFO') {
         const logger = log4js.getLogger(moduleName);
         logger.setLevel(loggingLevel);
         return logger;
     }
-    static inspectProposalResponses(
+    public static inspectProposalResponses(
         proposalResult: [
-            (FabricClient.ProposalResponse | Error)[],
+            Array<FabricClient.ProposalResponse | Error>,
             FabricClient.Proposal
         ]
     ): void {
-        const responses: (FabricClient.ProposalResponse | Error)[] =
+        const responses: Array<FabricClient.ProposalResponse | Error> =
             proposalResult[0];
 
         const errorsFound = responses.filter(
@@ -92,7 +84,7 @@ export default class FabricHelper {
         }
     }
 
-    static inspectBroadcastResponse(
+    public static inspectBroadcastResponse(
         response: FabricClient.BroadcastResponse
     ): void {
         if (response.status !== 'SUCCESS') {
@@ -114,18 +106,18 @@ export default class FabricHelper {
         }
     }
 
-    static getPeerNamesAsStringForChannel(
+    public static getPeerNamesAsStringForChannel(
         channel: FabricClient.Channel
     ): string {
         const peerNames: string[] = [];
-        for (let peer of channel.getPeers()) {
+        for (const peer of channel.getPeers()) {
             peerNames.push(peer.getName());
         }
 
         return peerNames.join(',');
     }
 
-    static registerAndConnectTxEventHub(
+    public static registerAndConnectTxEventHub(
         channel: FabricClient.Channel,
         deployTxId: string
     ): Promise<void> {
@@ -170,16 +162,16 @@ export default class FabricHelper {
         });
     }
 
-    static async sendChaincodeProposalToPeers(
+    public static async sendChaincodeProposalToPeers(
         channel: FabricClient.Channel,
         deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest,
         upgrade: boolean,
         timeout?: number
     ): Promise<
-        [(FabricClient.ProposalResponse | Error)[], FabricClient.Proposal]
+        [Array<FabricClient.ProposalResponse | Error>, FabricClient.Proposal]
     > {
         let proposalResponses: [
-            (FabricClient.ProposalResponse | Error)[],
+            Array<FabricClient.ProposalResponse | Error>,
             FabricClient.Proposal
         ];
 
@@ -199,6 +191,14 @@ export default class FabricHelper {
 
         return proposalResponses;
     }
+    private clients: object;
+    private channels: object;
+    private ORGS: any;
+    private caClients: any;
+
+    private channel: string;
+    private keyValueStoreBasePath: string;
+    private cryptoDirPath: string;
 
     constructor(
         networkConfigFilePath: string,
@@ -252,6 +252,59 @@ export default class FabricHelper {
         }
     }
 
+    // APIs
+    public getChannelForOrg(org: string): FabricClient.Channel {
+        return this.channels[org];
+    }
+
+    public getClientForOrg(org: string): FabricClient {
+        return this.clients[org];
+    }
+
+    public async getOrgAdmin(org: string): Promise<FabricClient.User> {
+        if (!this.ORGS[org]) { throw new Error(`Unknown Org: ${org}`); }
+
+        logger.debug(`Getting org admin for user org: ${org}`);
+        const admin = this.ORGS[org].admin;
+
+        const keyPath = path.join(this.cryptoDirPath, admin.key);
+        logger.debug(`Org admin keyPath: ${keyPath}`);
+        const keyPEM = Buffer.from(this.readAllFiles(keyPath)[0]).toString();
+
+        const certPath = path.join(this.cryptoDirPath, admin.cert);
+        logger.debug(`The certPath: ${certPath}`);
+        const certPEM = this.readAllFiles(certPath)[0].toString();
+
+        const client = this.getClientForOrg(org);
+        const cryptoSuite = FabricClient.newCryptoSuite();
+
+        cryptoSuite.setCryptoKeyStore(
+            FabricClient.newCryptoKeyStore({
+                path: this.getKeyStoreForOrg(this.getOrgName(org))
+            })
+        );
+        client.setCryptoSuite(cryptoSuite);
+
+        const store = await FabricClient.newDefaultKeyValueStore({
+            path: this.getKeyStoreForOrg(this.getOrgName(org))
+        });
+
+        client.setStateStore(store);
+
+        logger.debug(`keyPEM: ${inspect(keyPEM)}`);
+        logger.debug(`certPEM: ${inspect(certPEM)}`);
+
+        return await client.createUser({
+            username: 'peer' + org + 'Admin',
+            mspid: this.getMspID(org),
+            cryptoContent: {
+                privateKeyPEM: keyPEM,
+                signedCertPEM: certPEM
+            },
+            skipPersistence: true
+        });
+    }
+
     private getKeyStoreForOrg(org: string): string {
         return this.keyValueStoreBasePath + '_' + org;
     }
@@ -263,7 +316,7 @@ export default class FabricHelper {
             logger.debug(
                 `grcps protocol detected for orderer in ${serverName}`
             );
-            if (!this.ORGS.orderer['tls_cacerts']) {
+            if (!this.ORGS.orderer.tls_cacerts) {
                 logger.error(
                     `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
                 );
@@ -294,7 +347,7 @@ export default class FabricHelper {
             let opts: FabricClient.ConnectionOpts = {};
             if (this.ORGS[org].peers[key].requests.includes('grpcs')) {
                 logger.debug(`grcps protocol detected for peers in ${org}`);
-                if (!this.ORGS[org].peers[key]['tls_cacerts']) {
+                if (!this.ORGS[org].peers[key].tls_cacerts) {
                     logger.error(
                         `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
                     );
@@ -306,7 +359,7 @@ export default class FabricHelper {
                 const data = fs.readFileSync(
                     path.join(
                         this.cryptoDirPath,
-                        this.ORGS[org].peers[key]['tls_cacerts']
+                        this.ORGS[org].peers[key].tls_cacerts
                     )
                 );
 
@@ -351,60 +404,9 @@ export default class FabricHelper {
         });
         return certs;
     }
-
-    // APIs
-    public getChannelForOrg(org: string): FabricClient.Channel {
-        return this.channels[org];
-    }
-
-    public getClientForOrg(org: string): FabricClient {
-        return this.clients[org];
-    }
-
-    public async getOrgAdmin(org: string): Promise<FabricClient.User> {
-        if (!this.ORGS[org]) throw new Error(`Unknown Org: ${org}`);
-
-        logger.debug(`Getting org admin for user org: ${org}`);
-        const admin = this.ORGS[org].admin;
-
-        const keyPath = path.join(this.cryptoDirPath, admin.key);
-        logger.debug(`Org admin keyPath: ${keyPath}`);
-        const keyPEM = Buffer.from(this.readAllFiles(keyPath)[0]).toString();
-
-        const certPath = path.join(this.cryptoDirPath, admin.cert);
-        logger.debug(`The certPath: ${certPath}`);
-        const certPEM = this.readAllFiles(certPath)[0].toString();
-
-        const client = this.getClientForOrg(org);
-        const cryptoSuite = FabricClient.newCryptoSuite();
-
-        cryptoSuite.setCryptoKeyStore(
-            FabricClient.newCryptoKeyStore({
-                path: this.getKeyStoreForOrg(this.getOrgName(org))
-            })
-        );
-        client.setCryptoSuite(cryptoSuite);
-
-        const store = await FabricClient.newDefaultKeyValueStore({
-            path: this.getKeyStoreForOrg(this.getOrgName(org))
-        });
-
-        client.setStateStore(store);
-
-        logger.debug(`keyPEM: ${inspect(keyPEM)}`);
-        logger.debug(`certPEM: ${inspect(certPEM)}`);
-
-        return await client.createUser({
-            username: 'peer' + org + 'Admin',
-            mspid: this.getMspID(org),
-            cryptoContent: {
-                privateKeyPEM: keyPEM,
-                signedCertPEM: certPEM
-            },
-            skipPersistence: true
-        });
-    }
 }
+
+// Not implemented yet
 
 // FabricHelper.prototype.newRemotes = function(names, forPeers, userOrg) {
 //     let client = this.getClientForOrg(userOrg);

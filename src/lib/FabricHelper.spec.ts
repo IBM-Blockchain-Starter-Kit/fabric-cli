@@ -1,5 +1,5 @@
-import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
+import FabricHelper from './FabricHelper';
 
 const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
 let exampleNetworkConfig: any = require(PATH_TO_EXAMPLE_NETWORK_CONFIG);
@@ -125,7 +125,7 @@ describe(`FabricHelper Static Functions`, () => {
             expect(callFunc).toThrowError(expectedError);
         });
 
-        it("should throw an error if any of the proposal responses don't have status of 200", () => {
+        it('should throw an error if any of the proposal responses don\'t have status of 200', () => {
             const callFunc = () => {
                 FabricHelper.inspectProposalResponses(
                     // Ignoring types for this to simplify the test data. Only response object inspected in function.
@@ -186,6 +186,38 @@ describe(`FabricHelper Static Functions`, () => {
             expect(
                 FabricClient.Channel.prototype.sendInstantiateProposal
             ).toBeCalledTimes(1);
+        });
+    });
+
+    describe('inspectBroadcastResponse', () => {
+        const exampleBroadcastResponse = {
+            status: 'SUCCESS'
+        };
+
+        const exampleBroadcastResponseBad = {
+            status: 'BAD',
+            info: 'Test bad response'
+        };
+        it('should return undefined when broadcast response is good', () => {
+            expect(
+                FabricHelper.inspectBroadcastResponse(exampleBroadcastResponse)
+            ).toBeUndefined();
+        });
+
+        it(`should error if the broadcast response status in not 'SUCCESS`, () => {
+            const callFunc = () => {
+                FabricHelper.inspectBroadcastResponse(
+                    exampleBroadcastResponseBad
+                );
+            };
+
+            const expectedError = new Error(
+                `sendTransaction returned with an invalid status code: ${
+                    exampleBroadcastResponseBad.status
+                }: ${exampleBroadcastResponseBad.info}`
+            );
+
+            expect(callFunc).toThrowError(expectedError);
         });
     });
 });
