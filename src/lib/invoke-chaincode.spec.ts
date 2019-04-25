@@ -30,6 +30,11 @@ const exampleProposalResponse2: any = {
         payload: exampleResponsePayload
     }
 };
+
+const exampleBadProposalResponse1: any = {
+    response: { status: 400 }
+};
+
 const exampleProposal: any = {};
 
 const exampleProposalResponses = [
@@ -37,8 +42,21 @@ const exampleProposalResponses = [
     exampleProposal
 ];
 
+const exampleProposalResponsesWithBad = [
+    [
+        exampleProposalResponse1,
+        exampleBadProposalResponse1,
+        exampleProposalResponse2
+    ]
+];
+
 const exampleBroadcastResponse = {
     status: 'SUCCESS'
+};
+
+const exampleBroadcastResponseBad = {
+    status: 'BAD',
+    info: 'Test bad response'
 };
 
 const exampleInvokeResult = {
@@ -130,6 +148,46 @@ describe('invokeChaincode', () => {
         ).toBeCalledWith(request, EXAMPLE_TIMEOUT);
     });
 
+    it(`should call channel.sendTransaction with the expected transaction request`, async () => {
+        (FabricClient.Channel.prototype.initialize as any) = jest.fn();
+        (FabricClient.Channel.prototype
+            .sendTransactionProposal as any) = jest.fn(() => {
+            return exampleProposalResponses;
+        });
+        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(
+            () => {
+                return exampleBroadcastResponse;
+            }
+        );
+
+        (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
+
+        await invokeChaincode(
+            PATH_TO_EXAMPLE_NETWORK_CONFIG,
+            EXAMPLE_CHANNEL_NAME,
+            EXAMPLE_CHAINCODE_NAME,
+            EXAMPLE_FUNCTION_NAME,
+            EXAMPLE_ARGS,
+            EXAMPLE_ORG,
+            NOT_QUERY,
+            EXAMPLE_TIMEOUT,
+            EXAMPLE_CRYPTO_DIR_PATH
+        );
+
+        const expectedTransactionRequest = {
+            proposalResponses: exampleProposalResponses[0],
+            proposal: exampleProposalResponses[1]
+        };
+
+        expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(
+            1
+        );
+        expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledWith(
+            expectedTransactionRequest,
+            EXAMPLE_TIMEOUT
+        );
+    });
+
     it(`should not send transaction to channel if 'queryOnly' is true`, async () => {
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
         (FabricClient.Channel.prototype
@@ -166,19 +224,12 @@ describe('invokeChaincode', () => {
         expect(result).toEqual(exampleInvokeResult);
     });
 
-    xit(`should throw an error if the response status isn't 200`, async () => {
-        // REDUNDANT TEST + CODE
-
+    it(`should throw an error if a proposal response is bad`, async () => {
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
         (FabricClient.Channel.prototype
             .sendTransactionProposal as any) = jest.fn(() => {
-            return exampleProposalResponses;
+            return exampleProposalResponsesWithBad;
         });
-        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(
-            () => {
-                return exampleBroadcastResponse;
-            }
-        );
 
         (FabricClient.prototype.newTransactionID as any) = jest.fn(() => {
             return exampleTx;
@@ -186,21 +237,62 @@ describe('invokeChaincode', () => {
 
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
-        const result = await invokeChaincode(
-            PATH_TO_EXAMPLE_NETWORK_CONFIG,
-            EXAMPLE_CHANNEL_NAME,
-            EXAMPLE_CHAINCODE_NAME,
-            EXAMPLE_FUNCTION_NAME,
-            EXAMPLE_ARGS,
-            EXAMPLE_ORG,
-            IS_QUERY,
-            EXAMPLE_TIMEOUT,
-            EXAMPLE_CRYPTO_DIR_PATH
+        const expectedError = new Error(
+            `Response null or has a status not equal to 200: { response: { status: 400 } }`
         );
 
-        expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(
-            0
+        await expect(
+            invokeChaincode(
+                PATH_TO_EXAMPLE_NETWORK_CONFIG,
+                EXAMPLE_CHANNEL_NAME,
+                EXAMPLE_CHAINCODE_NAME,
+                EXAMPLE_FUNCTION_NAME,
+                EXAMPLE_ARGS,
+                EXAMPLE_ORG,
+                NOT_QUERY,
+                EXAMPLE_TIMEOUT,
+                EXAMPLE_CRYPTO_DIR_PATH
+            )
+        ).rejects.toThrow(expectedError);
+    });
+
+    it(`should throw an error if a broadcast response is bad`, async () => {
+        (FabricClient.Channel.prototype.initialize as any) = jest.fn();
+        (FabricClient.Channel.prototype
+            .sendTransactionProposal as any) = jest.fn(() => {
+            return exampleProposalResponses;
+        });
+
+        (FabricClient.prototype.newTransactionID as any) = jest.fn(() => {
+            return exampleTx;
+        });
+
+        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(
+            () => {
+                return exampleBroadcastResponseBad;
+            }
         );
-        expect(result).toEqual(exampleInvokeResult);
+
+        (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
+
+        const expectedError = new Error(
+            `sendTransaction returned with an invalid status code: ${
+                exampleBroadcastResponseBad.status
+            }: ${exampleBroadcastResponseBad.info}`
+        );
+
+        await expect(
+            invokeChaincode(
+                PATH_TO_EXAMPLE_NETWORK_CONFIG,
+                EXAMPLE_CHANNEL_NAME,
+                EXAMPLE_CHAINCODE_NAME,
+                EXAMPLE_FUNCTION_NAME,
+                EXAMPLE_ARGS,
+                EXAMPLE_ORG,
+                NOT_QUERY,
+                EXAMPLE_TIMEOUT,
+                EXAMPLE_CRYPTO_DIR_PATH
+            )
+        ).rejects.toThrow(expectedError);
     });
 });

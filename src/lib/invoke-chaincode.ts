@@ -14,10 +14,10 @@
  *  limitations under the License.
  */
 
-import * as path from 'path';
-import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
+import * as path from 'path';
 import { inspect } from 'util';
+import FabricHelper from './FabricHelper';
 const logger = FabricHelper.getLogger('invoke-chaincode');
 
 interface ResponseObject {
@@ -61,7 +61,7 @@ export async function invokeChaincode(
 
     const request: FabricClient.ChaincodeInvokeRequest = {
         chaincodeId: chaincodeName,
-        args: args,
+        args,
         txId: tx_id
     };
 
@@ -103,28 +103,15 @@ export async function invokeChaincode(
 
     response = getResponseFromProposalResponseObject(proposalResponses);
 
-    if (response.status === 200) {
-        logger.info('Successfully sent transaction to the orderer');
-        logger.info(`Transaction response:\n ${inspect(response)}`);
-        return response;
-    } else {
-        logger.error(
-            `Failed to complete invoke transaction the ledger. Error code:  ${
-                response.status
-            }`
-        );
-        throw new Error(
-            `Failed to complete invoke transaction the ledger. Error code:  ${
-                response.status
-            }`
-        );
-    }
+    logger.info('Successfully sent transaction to the orderer');
+    logger.info(`Transaction response:\n ${inspect(response)}`);
+    return response;
 }
 
 function getResponseFromProposalResponseObject(
     proposalResponses: FabricClient.ProposalResponseObject
 ): ResponseObject {
-    let responses = proposalResponses[0] as FabricClient.ProposalResponse[];
+    const responses = proposalResponses[0] as FabricClient.ProposalResponse[];
     return {
         status: responses[0].response.status,
         message: responses[0].response.message,
@@ -146,9 +133,9 @@ async function sendChaincodeInvokeProposal(
     const proposalResponses = proposalResult[0];
     const proposal = proposalResult[1];
 
-    const request = {
-        proposalResponses: proposalResponses,
-        proposal: proposal
+    const request: FabricClient.TransactionRequest = {
+        proposalResponses,
+        proposal
     };
     const broadcastResponse = await channel.sendTransaction(request, timeout);
 
