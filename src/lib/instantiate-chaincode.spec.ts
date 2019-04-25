@@ -74,7 +74,7 @@ describe('instantiateChaincode', () => {
         });
 
         (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn();
-        // Mock as function tries to connect to non existent peers
+        // Mock because function tries to connect to non existent peers
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
 
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
