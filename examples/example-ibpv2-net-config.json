@@ -1,0 +1,39 @@
+{
+    "network-config": {
+        "orderer": {
+            "url": "grpcs://173.193.122.85:32357",
+            "server-hostname": "173.193.122.85:32357",
+            "tls_cacerts": "./remote_fabric/orderer/tlsCert.rootcert"
+        },
+        "org1msp": {
+            "name": "org1msp",
+            "mspid": "org1msp",
+            "ca": {
+                "url": "https://173.193.122.85:31986",
+                "name": "173.193.122.85:31986"
+            },
+            "peers": {
+                "myPeer": {
+                    "requests": "grpcs://173.193.122.85:30095",
+                    "events": "grpcs://173.193.122.85:30095",
+                    "server-hostname": "173.193.122.85:30095",
+                    "tls_cacerts": "./remote_fabric/org1/peer1/tlsCert.rootcert"
+                }
+            },
+            "Admin": {
+                "key": "./remote_fabric/org1/wallet/key",
+                "cert": "./remote_fabric/org1/wallet/cert"
+            },
+            "chaincode": [
+                {
+                    "name": "device-access",
+                    "path": "~/.fabric-vscode/packages/",
+                    "channels": ["channel1"],
+                    "init_args": [],
+                    "instantiate": "false",
+                    "install": "true"
+                }
+            ]
+        }
+    }
+}

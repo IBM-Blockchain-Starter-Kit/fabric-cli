@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-"use strict";
+'use strict';
 
-const fs = require("fs");
-const hfc = require("fabric-client");
-const path = require("path");
-const instantiateLib = require("../../lib/instantiate-chaincode.js");
+const fs = require('fs');
+const hfc = require('fabric-client');
+const path = require('path');
+const instantiateLib = require('../../dist/instantiate-chaincode');
 
 // https://devhints.io/yargs
 exports.command = "instantiate";

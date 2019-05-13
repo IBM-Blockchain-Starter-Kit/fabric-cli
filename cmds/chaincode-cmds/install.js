@@ -16,7 +16,7 @@ limitations under the License.
 const fs = require('fs');
 const hfc = require('fabric-client');
 const path = require('path');
-const installLib = require('../../lib/install-chaincode.js')
+const installLib = require('../../dist/install-chaincode.js');
 
 exports.command = 'install';
 exports.desc = 'Install chaincode';
