@@ -22,25 +22,27 @@ export const desc: string = 'Install, instantiate and update chaincode';
 export function builder(yargs): any {
     return yargs
         .commandDir('chaincode-cmds')
-        .option('net-config', {
+        .option('conn-profile', {
             demandOption: true,
             describe:
-                'Absolute path for network config file based on  FAB-5363 format',
+                'Absolute path for connection profile file based on  FAB-5363 format',
             type: 'string'
         })
         .check(function(argv) {
             //validate file exists
-            if (!fs.existsSync(argv['net-config'])) {
+            if (!fs.existsSync(argv['conn-profile'])) {
                 throw new Error(
-                    'Invalid --net-config argument.  File does not exist: ' +
-                        argv['net-config']
+                    'Invalid --conn-profile argument.  File does not exist: ' +
+                        argv['conn-profile']
                 );
             }
             //validate file format
-            let netConfig = require(argv['net-config']);
-            if (!netConfig.hasOwnProperty('network-config')) {
+            let connProfile = require(argv['conn-profile']);
+            if (!connProfile.hasOwnProperty('organizations') &&
+                !connProfile.hasOwnProperty('client') &&
+                !connProfile.hasOwnProperty('certificateAuthorities')) {
                 throw new Error(
-                    'Invalid --net-config argument.  Invalid format, missing network-config key.'
+                    'Invalid --conn-profile argument.  Invalid format, missing network-config key.'
                 );
             }
             return true;
@@ -54,14 +56,14 @@ export function builder(yargs): any {
         })
         .check(function(argv) {
             //get the network configuration file.  by now this has already been validated that it exists
-            FabricClient.addConfigFile(argv['net-config']);
+            FabricClient.addConfigFile(argv['conn-profile']);
             //make sure the org specified is in the network-config file
-            let orgs = FabricClient.getConfigSetting('network-config');
+            let orgs = FabricClient.getConfigSetting('organizations');
             if (!orgs[argv.org]) {
                 throw new Error(
                     "Invalid --org argument. Organization '" +
                         argv.org +
-                        "' not found in network-config file."
+                        "' not found in connection-profile file."
                 );
             }
             return true;

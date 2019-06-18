@@ -65,7 +65,7 @@ export function builder(yargs) {
 export async function handler(argv) {
     console.log('Invoking transaction in chaincode');
     await invokeChaincode(
-        argv['net-config'],
+        argv['conn-profile'],
         argv['channel'],
         argv['cc-name'],
         argv['invoke-fn'],

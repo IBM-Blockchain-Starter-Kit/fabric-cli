@@ -47,7 +47,8 @@ export async function invokeChaincode(
         networkConfigFilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-        cryptoDir
+        cryptoDir,
+        org
     );
     const channel = fabricHelper.getChannelForOrg(org);
     const client = fabricHelper.getClientForOrg(org);

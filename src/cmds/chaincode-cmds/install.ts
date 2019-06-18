@@ -90,7 +90,7 @@ export async function handler(argv): Promise<void> {
 
     console.log('Installing chaincode');
     return await installChaincode(
-        argv['net-config'],
+        argv['conn-profile'],
         argv['channel'],
         argv['cc-name'],
         argv['src-dir'],

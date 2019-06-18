@@ -197,7 +197,6 @@ export default class FabricHelper {
     }
     private clients: object;
     private channels: object;
-    private ORGS: any;
     private caClients: any;
 
     private channel: string;
@@ -208,41 +207,34 @@ export default class FabricHelper {
     private objCreateGateway = new CreateGateway();
     private ccp;
     private orgName;
+    private connectionProfile;
 
     constructor(
         networkConfigFilePath: string,
         channelName: string,
         keyValueStoreBasePath: string,
-        cryptoDirPath: string
+        cryptoDirPath: string,
+        org: string
     ) {
-        //networkConfigFilePath = '/Users/marcjabbour/Downloads/channel1_fablexus_profile.json'
-        //FabricClient.addConfigFile(networkConfigFilePath);
-        //this.ORGS = FabricClient.getConfigSetting('network-config');
         this.clients = {};
         this.channels = {};
         this.caClients = {};
         this.channel = channelName;
         this.keyValueStoreBasePath = keyValueStoreBasePath;
         this.cryptoDirPath = cryptoDirPath;
-
         this.gateway
-        this.ccp = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/examples/org1msp-conn-profile.json';
-        this.orgName = 'org1msp';
+        this.ccp = networkConfigFilePath
+        this.connectionProfile = require(this.ccp);
 
-
-
-        
 
         // set up the client and channel objects for each org
-
-        const org = this.orgName;
+        const orgName = org;
         const client = new FabricClient();
 
         const cryptoSuite = FabricClient.newCryptoSuite();
         cryptoSuite.setCryptoKeyStore(
             FabricClient.newCryptoKeyStore({
-                //path: this.getKeyStoreForOrg(this.ORGS[org].name)
-                path: this.getKeyStoreForOrg(org)
+                path: this.getKeyStoreForOrg(orgName)
             })
         );
         client.setCryptoSuite(cryptoSuite);
@@ -250,20 +242,16 @@ export default class FabricHelper {
         const channel = client.newChannel(channelName);
         channel.addOrderer(this.newOrderer(client));
 
-        this.clients[org] = client;
-        this.channels[org] = channel;
+        this.clients[orgName] = client;
+        this.channels[orgName] = channel;
 
-        this.setupPeers(channel, org, client);
+        this.setupPeers(channel, orgName, client);
 
-        const connectionProfile = require(this.ccp);
-        for (var key in connectionProfile.certificateAuthorities){
-            const caName  = connectionProfile.certificateAuthorities[key].caName
-            const caUrl = connectionProfile.certificateAuthorities[key].url;
+        for (var key in this.connectionProfile.certificateAuthorities){
+            const caName  = key;
+            const caUrl = this.connectionProfile.certificateAuthorities[key].url;
 
-        // const caUrl = 'https://169.55.231.184:30545';//this.ORGS[org].ca.url;
-        // const caName = '169.55.231.184:30545'//this.ORGS[org].ca.name;
-
-        logger.info('The Org for this CA is: ' + org);
+        logger.info('The Org for this CA is: ' + orgName);
         logger.info('The CA Name is: ' + caName);
         logger.info('The CA UrL is: ' + caUrl);
         this.caClients[org] = new CaClient(
@@ -296,7 +284,6 @@ export default class FabricHelper {
         //if (!this.ORGS[org]) { throw new Error(`Unknown Org: ${org}`); }
 
         logger.debug(`Getting org admin for user org: ${org}`);
-        //const admin = this.ORGS[org].admin;
 
         const keyPath = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/remote_fabric/org1/wallet/key/privKey';//path.join(this.cryptoDirPath, admin.key);
         logger.debug(`Org admin keyPath: ${keyPath}`);
@@ -327,7 +314,7 @@ export default class FabricHelper {
 
         return await client.createUser({
             username: 'peer' + org + 'Admin',
-            mspid: this.orgName,
+            mspid: org,
             cryptoContent: {
                 privateKeyPEM: keyPEM,
                 signedCertPEM: certPEM
@@ -341,13 +328,11 @@ export default class FabricHelper {
     }
 
     private newOrderer(client: FabricClient): FabricClient.Orderer {
-        const objConnProfile = require(this.ccp);
-                                                 //this.ORGS.orderer['server-hostname'];
         let serverNameObject;
         let url : string = "";
-        for(var key in objConnProfile.orderers){
+        for(var key in this.connectionProfile.orderers){
             if(key != "__proto__"){
-                serverNameObject = objConnProfile.orderers[key];
+                serverNameObject = this.connectionProfile.orderers[key];
                 const objArray = Object.keys(serverNameObject).map(i => serverNameObject[i])
                 url = objArray[0];
                 break;
@@ -386,11 +371,10 @@ export default class FabricHelper {
         client: FabricClient
     ) {
         const orgMspId: string = this.orgName;
-        const objConnProfile = require(this.ccp);
 
-        for (const key in objConnProfile.peers) {
+        for (const key in this.connectionProfile.peers) {
             let opts: FabricClient.ConnectionOpts = {};
-            if (objConnProfile.peers[key].url.includes('grpcs')) {
+            if (this.connectionProfile.peers[key].url.includes('grpcs')) {
                 // logger.debug(`grcps protocol detected for peers in ${org}`);                         --- do this correctly !!
                 // if (!this.ORGS[org].peers[key].tls_cacerts) {
                 //     logger.error(
@@ -418,7 +402,7 @@ export default class FabricHelper {
             }
 
             const peer = client.newPeer(
-                objConnProfile.peers[key].url,
+                this.connectionProfile.peers[key].url,
                 opts
             );
             peer.setName(key);

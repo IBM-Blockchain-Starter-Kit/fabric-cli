@@ -21,14 +21,6 @@ const { Gateway } = require('fabric-network');
 const util = require('../helpers/util');
 const walletHelper = require('../helpers/wallet');
 
-//get admin credentials from JSON
-// var fs = require("fs");
-
-
-//const ccp = require(`${__dirname}/../config/fabric-connection-profile.json`); // Require --conn-profile
-//const fabricConfig = require(`${__dirname}/../config/fabric-connections.json`); // fabric connections configuration
-
-
 
 /**
  * FabricRoutes class that handles creating routes that need to connect to the
@@ -104,4 +96,4 @@ class CreateGateway {
 }
 
 exports.CreateGateway = CreateGateway;
-//exports.SetupGateway = this.gateway;
+

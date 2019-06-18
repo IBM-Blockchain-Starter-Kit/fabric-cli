@@ -45,7 +45,8 @@ export async function installChaincode(
         networkConfigFilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-        cryptoDir
+        cryptoDir,
+        org
     );
 
 

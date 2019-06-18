@@ -96,7 +96,7 @@ export function builder(yargs) {
 export async function handler(argv) {
     console.log('Instantiating chaincode');
     return await instantiateChaincode(
-        argv['net-config'],
+        argv['conn-profile'],
         argv['channel'],
         argv['cc-name'],
         argv['cc-version'],
