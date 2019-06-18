@@ -53,6 +53,13 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
+        .option('org-credentials', {
+            demandOption: true,
+            describe:
+                'Relative path to where the user credentials are located (for golang this is with respect to GOPATH/src)',
+            requiresArg: true,
+            type: 'string'
+        })
         .check(function(argv) {
             if (!argv['cc-type'] || argv['cc-type'] === 'golang') {
                 if (!process.env.GOPATH) {
@@ -76,6 +83,7 @@ export function builder(yargs) {
 
             return true;
         });
+        
 }
 
 export async function handler(argv): Promise<void> {
@@ -96,6 +104,7 @@ export async function handler(argv): Promise<void> {
         argv['src-dir'],
         argv['cc-version'],
         argv['org'],
+        argv['org-credentials'],
         argv['crypto-dir'],
         argv['cc-type']
     );

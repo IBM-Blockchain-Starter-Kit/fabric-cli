@@ -30,6 +30,7 @@ export async function instantiateChaincode(
     functionName: string,
     args: string[],
     org: string,
+    credentialFilePath: string,
     timeout: number,
     endorsementPolicy: any,
     cryptoDir: string,
@@ -46,7 +47,8 @@ export async function instantiateChaincode(
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
         cryptoDir,
-        org
+        org,
+        credentialFilePath
     );
     const channel = helper.getChannelForOrg(org);
     const client = helper.getClientForOrg(org);
@@ -59,7 +61,7 @@ export async function instantiateChaincode(
 
     const { upgrade, versionToDeploy } = await checkIsUpgradeAndGetVersion(
         channel,
-        channel.getPeers()[0].getName(),
+        channel.getPeers()[0].getName(),                                                            //here
         chaincodeName
     );
 

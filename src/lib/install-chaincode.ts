@@ -29,6 +29,7 @@ export async function installChaincode(
     chaincodePath: string,
     chaincodeVersion: string,
     org: string,
+    credentialFilePath: string,
     cryptoDir: string,
     chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE
 ): Promise<void> {
@@ -46,7 +47,8 @@ export async function installChaincode(
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
         cryptoDir,
-        org
+        org,
+        credentialFilePath
     );
 
 

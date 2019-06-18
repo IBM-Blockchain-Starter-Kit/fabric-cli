@@ -33,6 +33,7 @@ export async function invokeChaincode(
     functionName: string,
     args: string[],
     org: string,
+    credentialFilePath: string,
     queryOnly: boolean,
     timeout: number,
     cryptoDir: string
@@ -48,7 +49,8 @@ export async function invokeChaincode(
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
         cryptoDir,
-        org
+        org,
+        credentialFilePath
     );
     const channel = fabricHelper.getChannelForOrg(org);
     const client = fabricHelper.getClientForOrg(org);
