@@ -216,8 +216,8 @@ export default class FabricHelper {
         cryptoDirPath: string
     ) {
         //networkConfigFilePath = '/Users/marcjabbour/Downloads/channel1_fablexus_profile.json'
-        FabricClient.addConfigFile(networkConfigFilePath);
-        this.ORGS = FabricClient.getConfigSetting('network-config');
+        //FabricClient.addConfigFile(networkConfigFilePath);
+        //this.ORGS = FabricClient.getConfigSetting('network-config');
         this.clients = {};
         this.channels = {};
         this.caClients = {};
@@ -225,51 +225,56 @@ export default class FabricHelper {
         this.keyValueStoreBasePath = keyValueStoreBasePath;
         this.cryptoDirPath = cryptoDirPath;
 
-
         this.gateway
         this.ccp = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/examples/org1msp-conn-profile.json';
         this.orgName = 'org1msp';
 
+
+
         
 
         // set up the client and channel objects for each org
-        for (const org in this.ORGS) {            
-            if (org.indexOf('org') === 0) {
-                const org = 'org1msp';
-                const client = new FabricClient();
 
-                const cryptoSuite = FabricClient.newCryptoSuite();
-                cryptoSuite.setCryptoKeyStore(
-                    FabricClient.newCryptoKeyStore({
-                        //path: this.getKeyStoreForOrg(this.ORGS[org].name)
-                        path: this.getKeyStoreForOrg(org)
-                    })
-                );
-                client.setCryptoSuite(cryptoSuite);
+        const org = this.orgName;
+        const client = new FabricClient();
 
-                const channel = client.newChannel('channel1');
-                channel.addOrderer(this.newOrderer(client));
+        const cryptoSuite = FabricClient.newCryptoSuite();
+        cryptoSuite.setCryptoKeyStore(
+            FabricClient.newCryptoKeyStore({
+                //path: this.getKeyStoreForOrg(this.ORGS[org].name)
+                path: this.getKeyStoreForOrg(org)
+            })
+        );
+        client.setCryptoSuite(cryptoSuite);
 
-                this.clients[org] = client;
-                this.channels[org] = channel;
+        const channel = client.newChannel(channelName);
+        channel.addOrderer(this.newOrderer(client));
 
-                this.setupPeers(channel, org, client);
+        this.clients[org] = client;
+        this.channels[org] = channel;
 
-                const caUrl = 'https://169.55.231.184:30545';//this.ORGS[org].ca.url;
-                const caName = '169.55.231.184:30545'//this.ORGS[org].ca.name;
+        this.setupPeers(channel, org, client);
 
-                logger.info('The Org for this CA is: ' + org);
-                logger.info('The CA Name is: ' + caName);
-                logger.info('The CA UrL is: ' + caUrl);
-                this.caClients[org] = new CaClient(
-                    caUrl,
-                    null /*defautl TLS opts*/,
-                    caName,
-                    cryptoSuite
-                );
-            }
-        } 
+        const connectionProfile = require(this.ccp);
+        for (var key in connectionProfile.certificateAuthorities){
+            const caName  = connectionProfile.certificateAuthorities[key].caName
+            const caUrl = connectionProfile.certificateAuthorities[key].url;
+
+        // const caUrl = 'https://169.55.231.184:30545';//this.ORGS[org].ca.url;
+        // const caName = '169.55.231.184:30545'//this.ORGS[org].ca.name;
+
+        logger.info('The Org for this CA is: ' + org);
+        logger.info('The CA Name is: ' + caName);
+        logger.info('The CA UrL is: ' + caUrl);
+        this.caClients[org] = new CaClient(
+            caUrl,
+            null /*defautl TLS opts*/,
+            caName,
+            cryptoSuite
+        );
+
     }
+}
 
     // APIs
 
@@ -288,7 +293,7 @@ export default class FabricHelper {
     }
 
     public async getOrgAdmin(org: string): Promise<FabricClient.User> {
-        if (!this.ORGS[org]) { throw new Error(`Unknown Org: ${org}`); }
+        //if (!this.ORGS[org]) { throw new Error(`Unknown Org: ${org}`); }
 
         logger.debug(`Getting org admin for user org: ${org}`);
         //const admin = this.ORGS[org].admin;
@@ -306,13 +311,13 @@ export default class FabricHelper {
 
         cryptoSuite.setCryptoKeyStore(
             FabricClient.newCryptoKeyStore({
-                path: this.getKeyStoreForOrg(this.getOrgName('org1msp'))
+                path: this.getKeyStoreForOrg(this.orgName)
             })
         );
         client.setCryptoSuite(cryptoSuite);
 
         const store = await FabricClient.newDefaultKeyValueStore({
-            path: this.getKeyStoreForOrg(this.getOrgName('org1msp'))
+            path: this.getKeyStoreForOrg(this.orgName)
         });
 
         client.setStateStore(store);
@@ -322,7 +327,7 @@ export default class FabricHelper {
 
         return await client.createUser({
             username: 'peer' + org + 'Admin',
-            mspid: this.getMspID('org1msp'),
+            mspid: this.orgName,
             cryptoContent: {
                 privateKeyPEM: keyPEM,
                 signedCertPEM: certPEM
@@ -336,21 +341,33 @@ export default class FabricHelper {
     }
 
     private newOrderer(client: FabricClient): FabricClient.Orderer {
-        const serverName: string = this.ORGS.orderer['server-hostname'];
-        let opts: FabricClient.ConnectionOpts = {};
-        if (this.ORGS.orderer.url.includes('grpcs')) {
-            logger.debug(
-                `grcps protocol detected for orderer in ${serverName}`
-            );
-            if (!this.ORGS.orderer.tls_cacerts) {
-                logger.error(
-                    `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
-                );
-                throw new Error(
-                    `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
-                );
+        const objConnProfile = require(this.ccp);
+                                                 //this.ORGS.orderer['server-hostname'];
+        let serverNameObject;
+        let url : string = "";
+        for(var key in objConnProfile.orderers){
+            if(key != "__proto__"){
+                serverNameObject = objConnProfile.orderers[key];
+                const objArray = Object.keys(serverNameObject).map(i => serverNameObject[i])
+                url = objArray[0];
+                break;
             }
-            const caRootsPath = this.ORGS.orderer.tls_cacerts;
+        }
+        let opts: FabricClient.ConnectionOpts = {};
+        //if (this.ORGS.orderer.url.includes('grpcs')) {                                                 --- do this correctly !!
+            // logger.debug(
+            //     `grcps protocol detected for orderer in ${serverName}`
+            // );
+            // if (!this.ORGS.orderer.tls_cacerts) {
+            //     logger.error(x
+            //         `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
+            //     );map
+            //     throw new Error(
+            //         `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
+            //     );
+            // }
+            ///Users/marcjabbour/Downloads/fabric-cli-master-functional/remote_fabric/orderer/tlsCert.rootcert
+            //sconst caRootsPath = this.ORGS.orderer.tls_cacerts;
             const data = fs.readFileSync(
                 //path.join(this.cryptoDirPath, caRootsPath)
                 '/Users/marcjabbour/Downloads/fabric-cli-master-functional/remote_fabric/orderer/tlsCert.rootcert'
@@ -359,35 +376,36 @@ export default class FabricHelper {
             opts = {
                 pem: caroots
             };
-        }
+       // }
 
-            return client.newOrderer('grpcs://169.55.231.184:30545', opts) //(this.ORGS.orderer.url, opts);
+        return client.newOrderer(url, opts);
     }
     private setupPeers(
         channel: FabricClient.Channel,
         org: string,
         client: FabricClient
     ) {
-        const orgMspId: string = 'org1msp'//this.ORGS[org].mspid;
+        const orgMspId: string = this.orgName;
+        const objConnProfile = require(this.ccp);
 
-        for (const key in this.ORGS[org].peers) {
+        for (const key in objConnProfile.peers) {
             let opts: FabricClient.ConnectionOpts = {};
-            if (this.ORGS[org].peers[key].requests.includes('grpcs')) {
-                logger.debug(`grcps protocol detected for peers in ${org}`);
-                if (!this.ORGS[org].peers[key].tls_cacerts) {
-                    logger.error(
-                        `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
-                    );
-                    throw new Error(
-                        `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
-                    );
-                }
+            if (objConnProfile.peers[key].url.includes('grpcs')) {
+                // logger.debug(`grcps protocol detected for peers in ${org}`);                         --- do this correctly !!
+                // if (!this.ORGS[org].peers[key].tls_cacerts) {
+                //     logger.error(
+                //         `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
+                //     );
+                //     throw new Error(
+                //         `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
+                //     );
+                // }
 
                 const data = fs.readFileSync(
-                    /*path.join(
-                        this.cryptoDirPath,
-                        this.ORGS[org].peers[key].tls_cacerts
-                    )*/
+                    // path.join(
+                    //     this.cryptoDirPath,
+                    //     this.ORGS[org].peers[key].tls_cacerts
+                    // )
                     '/Users/marcjabbour/Downloads/fabric-cli-master-functional/remote_fabric/org1/peer1/tlsCert.rootcert'
                 );
 
@@ -400,7 +418,7 @@ export default class FabricHelper {
             }
 
             const peer = client.newPeer(
-                'grpcs://169.55.231.184:32531', //this.ORGS[org].peers[key].requests,
+                objConnProfile.peers[key].url,
                 opts
             );
             peer.setName(key);
@@ -409,15 +427,18 @@ export default class FabricHelper {
         }
     }
 
-    private getOrgName(org: string): string {
-        logger.debug(`Org name : ${this.ORGS[org].name}`);
-        return this.ORGS[org].name;
-    }
 
-    private getMspID(org: string): string {
-        logger.debug(`MSP ID : ${this.ORGS[org].mspid}`);
-        return this.ORGS[org].mspid;
-    }
+    //Taken out because this.ORGS does not exist anymore =====> Modify these !!!
+
+    // private getOrgName(org: string): string {
+    //     logger.debug(`Org name : ${this.ORGS[org].name}`);
+    //     return this.ORGS[org].name;
+    // }
+
+    // private getMspID(org: string): string {
+    //     logger.debug(`MSP ID : ${this.ORGS[org].mspid}`);
+    //     return this.ORGS[org].mspid;
+    // }
 
     private readAllFiles(dir: string): string[] {
         let files: any = fs.readdirSync(dir);
