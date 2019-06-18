@@ -1,0 +1,111 @@
+{
+    "network-config": {
+        "orderer": {
+            "url": "grpcs://orderer.secure.blockchain.ibm.com:20060",
+            "server-hostname": "orderer",
+            "tls_cacerts": "../testData/crypto/orderer/tlsCert.rootcert"
+        },
+        "org3": {
+            "name": "Org3",
+            "mspid": "org3",
+            "ca": {
+                "url": "https://org3.ca.secure.blockchain.ibm.com:22418",
+                "name": "Org3CA"
+            },
+            "peers": {
+                "peer1": {
+                    "requests": "grpcs://org3.peer1.secure.blockchain.ibm.com:20002",
+                    "events": "grpcs://org3.peer1.secure.blockchain.ibm.com:20001",
+                    "server-hostname": "org3-peer1",
+                    "tls_cacerts": "../testData/crypto/org3/peer1/tlsCert.rootcert"
+                }
+            },
+            "admin": {
+                "key": "../testData/crypto/org3/wallet/key",
+                "cert": "../testData/crypto/org3/wallet/cert"
+            },
+            "chaincode": [
+                {
+                    "name": "example_chaincode",
+                    "path": "/path/to/chaincode",
+                    "channels": ["examplechannel"],
+                    "init_args": [],
+                    "upgrade": "true",
+                    "instantiate": "true",
+                    "install": "true"
+                }
+            ]
+        },
+        "org2": {
+            "name": "Org2",
+            "mspid": "org2",
+            "ca": {
+                "url": "https://org2.ca.secure.blockchain.ibm.com:27225",
+                "name": "Org2CA"
+            },
+            "peers": {
+                "peer1": {
+                    "requests": "grpcs://org2.peer1.secure.blockchain.ibm.com:27202",
+                    "events": "grpcs://org2.peer1.secure.blockchain.ibm.com:22334",
+                    "server-hostname": "org2-peer1",
+                    "tls_cacerts": "../testData/crypto/org2/peer1/tlsCert.rootcert"
+                }
+            },
+            "admin": {
+                "key": "../testData/crypto/org2/wallet/key",
+                "cert": "../testData/crypto/org2/wallet/cert"
+            },
+            "chaincode": [
+                {
+                    "name": "example_chaincode",
+                    "path": "/path/to/chaincode",
+                    "channels": ["examplechannel"],
+                    "init_args": [],
+                    "upgrade": "true",
+                    "instantiate": "true",
+                    "install": "true"
+                }
+            ]
+        },
+        "org1": {
+            "name": "Org1",
+            "mspid": "org1",
+            "ca": {
+                "url": "https://org1.ca.secure.blockchain.ibm.com:24485",
+                "name": "Org1CA"
+            },
+            "peers": {
+                "peer1": {
+                    "requests": "grpcs://org1.peer1.secure.blockchain.ibm.com:23544",
+                    "events": "grpcs://org1.peer1.secure.blockchain.ibm.com:20574",
+                    "server-hostname": "org1-peer1",
+                    "tls_cacerts": "../testData/crypto/org1/peer1/tlsCert.rootcert"
+                }
+            },
+            "admin": {
+                "key": "../testData/crypto/org1/wallet/key",
+                "cert": "../testData/crypto/org1/wallet/cert"
+            },
+            "chaincode": [
+                {
+                    "name": "example_chaincode",
+                    "path": "/path/to/chaincode",
+                    "channels": ["examplechannel"],
+                    "init_args": [],
+                    "upgrade": "true",
+                    "instantiate": "true",
+                    "install": "true"
+                },
+                {
+                    "name": "another_chaincode",
+                    "path": "/path/to/chaincode",
+                    "channels": ["anotherchannel"],
+                    "init_args": [],
+                    "upgrade": "true",
+                    "instantiate": "true",
+                    "install": "true"
+                }
+            ]
+        }
+    }
+}

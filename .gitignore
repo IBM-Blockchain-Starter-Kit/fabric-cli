@@ -1,0 +1,15 @@
+node_modules
+
+package-lock.json
+
+# Compiled TypeScript directory
+dist
+
+.vscode
+.DS_Store
+
+
+# Some test data
+local_fabric
+remote_fabric
+simple-config.json
