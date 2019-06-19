@@ -33,10 +33,10 @@ export async function invokeChaincode(
     functionName: string,
     args: string[],
     org: string,
-    credentialFilePath: string,
     queryOnly: boolean,
     timeout: number,
-    cryptoDir: string
+    cryptoDir: string,
+    credentialFilePath: string
 ): Promise<ResponseObject> {
     logger.debug(
         `Invoking method (${functionName}) on chaincode (${chaincodeName}) with arguments (${args})`
