@@ -210,6 +210,7 @@ export default class FabricHelper {
     private orgName;
     private connectionProfile;
     private credentialsPath : string;
+    private credFileName : string;
 
     constructor(
         networkConfigFilePath: string,
@@ -229,6 +230,8 @@ export default class FabricHelper {
         this.ccp = networkConfigFilePath
         this.connectionProfile = require(this.ccp);
         this.credentialsPath = credentialFilePath;
+        this.credFileName;
+
 
 
         // set up the client and channel objects for each org
@@ -267,7 +270,7 @@ export default class FabricHelper {
 
     }
 
-    this.generateCertificates();
+    
 }
 
     // APIs
@@ -286,23 +289,31 @@ export default class FabricHelper {
                 const privateKey = Buffer.from(credentials.private_key, bufferEncoding).toString();
                 const publicCert = Buffer.from(credentials.cert, bufferEncoding).toString();
                 const fileNameSp = credentials.name.toString();
-                const fileName = fileNameSp.replace(/\s+/g, '');
-                const dirPath = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/dist';
+                this.credFileName = fileNameSp.replace(/\s+/g, '');
+               // const dirPath = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/dist';
+                const mainPath = path.join(__dirname, '..', "remote_fabric");
+                const pathToOrg = mainPath + "/" + this.orgName;
+                const pathToFileName = pathToOrg + "/" + this.credFileName;
         
-                if (!fs.existsSync(`${dirPath}/remote_fabric`)){
-                        try {
-                          fs.mkdirSync(`${dirPath}/remote_fabric/${this.orgName}/${fileName}`, {recursive: true })      //figure This out
+                if (!fs.existsSync(mainPath)){
+                        try { 
+                          fs.mkdirSync(mainPath, {recursive: true })      //figure This out
+                          fs.mkdirSync(pathToOrg, {recursive: true }) 
+                          fs.mkdirSync(pathToFileName, {recursive: true }) 
+                          fs.mkdirSync(pathToFileName + "/publicCert", {recursive: true }) 
+                          fs.mkdirSync(pathToFileName + "/privateKey", {recursive: true }) 
                         } catch (err) {
                           if (err.code !== 'EEXIST') throw err
                         }
-                      
+                        
+                        //`${dirPath}/remote_fabric/${this.orgName}/${fileName}
                     
                 }
-                fs.writeFileSync(`./privateKey`, privateKey);
-                fs.writeFileSync(`./publicCert`, publicCert);
-        
-                console.log(`Successfully generated private key:\n ${privateKey}`);
-                console.log(`Successfully generated public cert:\n ${publicCert}`);
+
+                fs.writeFileSync(pathToFileName + "/privateKey/key", privateKey);
+                fs.writeFileSync(pathToFileName + "/publicCert/cert", publicCert);
+
+                return;
                   
             }
             catch(exception){
@@ -312,7 +323,7 @@ export default class FabricHelper {
     }
 
 
-
+//change org1admin, org1adminpw
     public async getGateway(){
         this.gateway = await this.objCreateGateway.setupGateway(this.ccp, this.orgName, 'org1admin', 'org1adminpw')
         return this.gateway;
@@ -332,11 +343,13 @@ export default class FabricHelper {
 
         logger.debug(`Getting org admin for user org: ${org}`);
 
-        const keyPath = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/remote_fabric/org1/wallet/key/privKey';//path.join(this.cryptoDirPath, admin.key);
+        //const keyPath= path.join(__dirname, '..', 'remote_fabric', this.orgName, this.credFileName, 'privateKey', 'key');
+        const keyPath= path.join(__dirname, '..', 'remote_fabric', this.orgName, 'Org1Admin', 'privateKey', 'key');
         logger.debug(`Org admin keyPath: ${keyPath}`);
         const keyPEM = Buffer.from(fs.readFileSync(keyPath)).toString() ;//Buffer.from(this.readAllFiles(keyPath)[0]).toString();
 
-        const certPath = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/remote_fabric/org1/wallet/cert/pubKey';//path.join(this.cryptoDirPath, admin.cert);
+        //const certPath = path.join(__dirname, '..', 'remote_fabric', this.orgName, this.credFileName, 'publicCert', 'cert');//path.join(this.cryptoDirPath, admin.cert);
+        const certPath = path.join(__dirname, '..', 'remote_fabric', this.orgName, 'Org1Admin', 'publicCert', 'cert');
         logger.debug(`The certPath: ${certPath}`);
         const certPEM = fs.readFileSync(certPath).toString()//this.readAllFiles(certPath)[0].toString();
 

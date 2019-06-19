@@ -51,6 +51,8 @@ export async function installChaincode(
         credentialFilePath
     );
 
+    //generate certificates from user credentials cli parameter
+    helper.generateCertificates();
 
     let gateway = await helper.getGateway();
     if (!gateway){
@@ -78,7 +80,7 @@ export async function installChaincode(
     logger.debug(`Successfully retrieved admin user: ${user}`);
 
     // Need to convert targets from ChannelPeer to Peer
-    const installTargets = networkPeers.map((peer) => peer.getPeer());
+    const installTargets = channel.getPeers().map((peer) => peer.getPeer());
 
     const request: FabricClient.ChaincodeInstallRequest = {
         targets: installTargets,
