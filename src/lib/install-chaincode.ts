@@ -29,9 +29,9 @@ export async function installChaincode(
     chaincodePath: string,
     chaincodeVersion: string,
     org: string,
-    credentialFilePath: string,
     cryptoDir: string,
-    chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE
+    chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE,
+    credentialFilePath: string
 ): Promise<void> {
     logger.debug(
         `============ Install chaincode called for organization: ${org} ============`

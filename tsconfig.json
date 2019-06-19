@@ -4,8 +4,8 @@
         "target": "es2017",
         "moduleResolution": "node",
         "module": "commonjs",
-        "declaration": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "allowJs": true
     },
     "include": ["./src/**/*"],
     "exclude": ["./lib", "src/**/*.spec.ts"]

@@ -104,8 +104,8 @@ export async function handler(argv): Promise<void> {
         argv['src-dir'],
         argv['cc-version'],
         argv['org'],
-        argv['org-credentials'],
         argv['crypto-dir'],
-        argv['cc-type']
+        argv['cc-type'],
+        argv['org-credentials']
     );
 }

@@ -42,7 +42,7 @@ export function builder(yargs): any {
                 !connProfile.hasOwnProperty('client') &&
                 !connProfile.hasOwnProperty('certificateAuthorities')) {
                 throw new Error(
-                    'Invalid --conn-profile argument.  Invalid format, missing network-config key.'
+                    'Invalid --conn-profile argument. Invalid format.'
                 );
             }
             return true;

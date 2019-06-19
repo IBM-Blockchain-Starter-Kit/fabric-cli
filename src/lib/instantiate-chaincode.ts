@@ -30,11 +30,11 @@ export async function instantiateChaincode(
     functionName: string,
     args: string[],
     org: string,
-    credentialFilePath: string,
     timeout: number,
     endorsementPolicy: any,
     cryptoDir: string,
-    chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE
+    chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE,
+    credentialFilePath: string
 ): Promise<void> {
     logger.debug(
         `============ Deploying smart contract to all Peers on Channel ${chaincodeName} for organization ${org} ============`
@@ -84,6 +84,7 @@ export async function instantiateChaincode(
         chaincodeVersion,
         tx_id,
         functionName,
+        cryptoDir,
         endorsementPolicy,
         args
     );
@@ -101,6 +102,7 @@ function buildDeploymentOptions(
     chaincodeVersion: number,
     tx_id: FabricClient.TransactionId,
     functionName: string,
+    cryptoDir: string,
     endorsementPolicy: string,
     args: string[]
 ): FabricClient.ChaincodeInstantiateUpgradeRequest {

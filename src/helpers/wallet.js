@@ -18,7 +18,7 @@ const log4js = require('log4js');
 const config = require('config');
 const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
 //fix this
-const fsWallet = new FileSystemWallet(`/Users/marcjabbour/Downloads/fabric-cli-master-functional/dist/wallet`);
+const fsWallet = new FileSystemWallet(`${__dirname}/../wallet`);
 //const fsWallet = new FileSystemWallet(`${__dirname}/../wallet`);     //Need to read from elsewhere ***** is this correct ??
 const logger = log4js.getLogger('helpers - wallet');
 logger.setLevel(config.logLevel);

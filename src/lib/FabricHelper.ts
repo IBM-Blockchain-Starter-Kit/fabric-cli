@@ -22,11 +22,9 @@ import * as path from 'path';
 import { inspect } from 'util';
 import { Gateway, Network } from 'fabric-network';
 //fix this
-import {CreateGateway} from '/Users/marcjabbour/Downloads/fabric-cli-master-functional/src/lib/CreateGateway.js'
+import {CreateGateway} from './CreateGateway'
 
 const logger = log4js.getLogger('FabricHelper')
-
-const connProfile = require('../../examples/org1msp-conn-profile.json');
 
 const LOGGING_LEVEL = process.env.LOGGING_LEVEL
     ? process.env.LOGGING_LEVEL
@@ -277,7 +275,6 @@ export default class FabricHelper {
 
     public generateCertificates(){
             const bufferEncoding = 'base64';
-            // const credentialFilePath = '/Users/marcjabbour/Downloads/Org1 Admin (3).json' //`./${credentialFileName}`;
             try{
                 if (!fs.existsSync(this.credentialsPath)){
                     console.log('Failed to find the credentails file for IBPv2 in the current path.')
@@ -290,7 +287,6 @@ export default class FabricHelper {
                 const publicCert = Buffer.from(credentials.cert, bufferEncoding).toString();
                 const fileNameSp = credentials.name.toString();
                 this.credFileName = fileNameSp.replace(/\s+/g, '');
-               // const dirPath = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/dist';
                 const mainPath = path.join(__dirname, '..', "remote_fabric");
                 const pathToOrg = mainPath + "/" + this.orgName;
                 const pathToFileName = pathToOrg + "/" + this.credFileName;
