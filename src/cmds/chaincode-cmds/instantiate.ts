@@ -23,6 +23,13 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
+        .option('admin-identity', {
+            demandOption: true,
+            describe:
+                'Absolute path to where the user credentials are located',
+            requiresArg: true,
+            type: 'string'
+        })
         .option('cc-version', {
             demandOption: true,
             describe: 'The version of chaincode to instantiate',
@@ -106,6 +113,6 @@ export async function handler(argv) {
         argv['timeout'],
         argv['endorsement-policy'],
         argv['cc-type'],
-        argv['org-credentials']
+        argv['admin-identity']
     );
 }

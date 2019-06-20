@@ -68,17 +68,17 @@ export function builder(yargs): any {
             }
             return true;
         })
-        .option('org-credentials', {
+        .option('admin-identity', {
             demandOption: true,
             describe:
                 'Absolute path for exported admin identity',
             type: 'string'
         })
         .check(function(argv) {
-            if (!fs.existsSync(argv['org-credentials'])) {
+            if (!fs.existsSync(argv['admin-identity'])) {
                 throw new Error(
-                    'Invalid --org-credentials argument.  Directory does not exist: ' +
-                        argv['org-credentials']
+                    'Invalid --admin-identity argument.  Directory does not exist: ' +
+                        argv['admin-identity']
                 );
             }
             return true;

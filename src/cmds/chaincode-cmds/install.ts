@@ -53,10 +53,10 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
-        .option('org-credentials', {
+        .option('admin-identity', {
             demandOption: true,
             describe:
-                'Relative path to where the user credentials are located (for golang this is with respect to GOPATH/src)',
+                'Absolute path to where the user credentials are located',
             requiresArg: true,
             type: 'string'
         })
@@ -105,6 +105,6 @@ export async function handler(argv): Promise<void> {
         argv['cc-version'],
         argv['org'],
         argv['cc-type'],
-        argv['org-credentials']
+        argv['admin-identity']
     );
 }

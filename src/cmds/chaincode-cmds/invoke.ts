@@ -23,6 +23,13 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
+        .option('admin-identity', {
+            demandOption: true,
+            describe:
+                'Absolute path to where the user credentials are located',
+            requiresArg: true,
+            type: 'string'
+        })
         .option('channel', {
             demandOption: true,
             describe: 'Name of the channel to invoke chaincode',
@@ -73,6 +80,6 @@ export async function handler(argv) {
         argv['org'],
         argv['query'],
         argv['timeout'],
-        argv['org-credentials']
+        argv['admin-identity']
     );
 }
