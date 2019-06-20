@@ -32,7 +32,6 @@ export async function instantiateChaincode(
     org: string,
     timeout: number,
     endorsementPolicy: any,
-    cryptoDir: string,
     chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE,
     credentialFilePath: string
 ): Promise<void> {
@@ -46,13 +45,12 @@ export async function instantiateChaincode(
         networkConfigFilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-        cryptoDir,
         org,
         credentialFilePath
     );
     const channel = helper.getChannelForOrg(org);
     const client = helper.getClientForOrg(org);
-    const user = await helper.getOrgAdmin(org);
+    const user = await helper.getOrgAdmin(org, credentialFilePath);
     const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
         channel
     );
@@ -84,7 +82,6 @@ export async function instantiateChaincode(
         chaincodeVersion,
         tx_id,
         functionName,
-        cryptoDir,
         endorsementPolicy,
         args
     );
@@ -102,7 +99,6 @@ function buildDeploymentOptions(
     chaincodeVersion: number,
     tx_id: FabricClient.TransactionId,
     functionName: string,
-    cryptoDir: string,
     endorsementPolicy: string,
     args: string[]
 ): FabricClient.ChaincodeInstantiateUpgradeRequest {

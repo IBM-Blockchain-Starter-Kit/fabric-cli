@@ -105,7 +105,6 @@ export async function handler(argv) {
         argv['org'],
         argv['timeout'],
         argv['endorsement-policy'],
-        argv['crypto-dir'],
         argv['cc-type'],
         argv['org-credentials']
     );

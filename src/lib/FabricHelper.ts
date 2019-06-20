@@ -200,21 +200,18 @@ export default class FabricHelper {
 
     private channel: string;
     private keyValueStoreBasePath: string;
-    private cryptoDirPath: string;
 
     private gateway : Gateway;
     private objCreateGateway = new CreateGateway();
     private ccp;
     private orgName;
     private connectionProfile;
-    private credentialsPath : string;
-    private credFileName : string;
+
 
     constructor(
         networkConfigFilePath: string,
         channelName: string,
         keyValueStoreBasePath: string,
-        cryptoDirPath: string,
         org: string,
         credentialFilePath: string
     ) {
@@ -223,14 +220,9 @@ export default class FabricHelper {
         this.caClients = {};
         this.channel = channelName;
         this.keyValueStoreBasePath = keyValueStoreBasePath;
-        this.cryptoDirPath = cryptoDirPath;
         this.gateway
         this.ccp = networkConfigFilePath
         this.connectionProfile = require(this.ccp);
-        this.credentialsPath = credentialFilePath;
-        this.credFileName;
-
-
 
         // set up the client and channel objects for each org
         this.orgName = org;
@@ -272,52 +264,7 @@ export default class FabricHelper {
 }
 
     // APIs
-
-    public generateCertificates(){
-            const bufferEncoding = 'base64';
-            try{
-                if (!fs.existsSync(this.credentialsPath)){
-                    console.log('Failed to find the credentails file for IBPv2 in the current path.')
-                    return;
-                }
-                
-                console.log(`Generating certificates for ${this.credentialsPath}`);
-                const credentials = JSON.parse(fs.readFileSync(this.credentialsPath) );
-                const privateKey = Buffer.from(credentials.private_key, bufferEncoding).toString();
-                const publicCert = Buffer.from(credentials.cert, bufferEncoding).toString();
-                const fileNameSp = credentials.name.toString();
-                this.credFileName = fileNameSp.replace(/\s+/g, '');
-                const mainPath = path.join(__dirname, '..', "remote_fabric");
-                const pathToOrg = mainPath + "/" + this.orgName;
-                const pathToFileName = pathToOrg + "/" + this.credFileName;
-        
-                if (!fs.existsSync(mainPath)){
-                        try { 
-                          fs.mkdirSync(mainPath, {recursive: true })      //figure This out
-                          fs.mkdirSync(pathToOrg, {recursive: true }) 
-                          fs.mkdirSync(pathToFileName, {recursive: true }) 
-                          fs.mkdirSync(pathToFileName + "/publicCert", {recursive: true }) 
-                          fs.mkdirSync(pathToFileName + "/privateKey", {recursive: true }) 
-                        } catch (err) {
-                          if (err.code !== 'EEXIST') throw err
-                        }
-                        
-                        //`${dirPath}/remote_fabric/${this.orgName}/${fileName}
-                    
-                }
-
-                fs.writeFileSync(pathToFileName + "/privateKey/key", privateKey);
-                fs.writeFileSync(pathToFileName + "/publicCert/cert", publicCert);
-
-                return;
-                  
-            }
-            catch(exception){
-                console.log(`Failed to generated certificates.  Error: ${exception}`);
-            }
-        
-    }
-
+    
 
 //change org1admin, org1adminpw
     public async getGateway(){
@@ -334,20 +281,28 @@ export default class FabricHelper {
         return this.clients[org];
     }
 
-    public async getOrgAdmin(org: string): Promise<FabricClient.User> {
-        //if (!this.ORGS[org]) { throw new Error(`Unknown Org: ${org}`); }
+    public async getOrgAdmin(org: string, credentialsFilePath: string): Promise<FabricClient.User> {
+        const bufferEncoding = 'base64';
+        let privateKey;
+        let publicCert;
 
+        try{
+            if (!fs.existsSync(credentialsFilePath)){
+                console.log('Failed to find the credentails file for IBPv2 in the current path.')
+                return;
+            }
+            const credentials = JSON.parse(fs.readFileSync(credentialsFilePath) );
+            privateKey = Buffer.from(credentials.private_key, bufferEncoding).toString();
+            publicCert = Buffer.from(credentials.cert, bufferEncoding).toString();
+        }
+        catch(exception){
+            console.log(`Failed to generated certificates.  Error: ${exception}`);
+        }
         logger.debug(`Getting org admin for user org: ${org}`);
 
-        //const keyPath= path.join(__dirname, '..', 'remote_fabric', this.orgName, this.credFileName, 'privateKey', 'key');
-        const keyPath= path.join(__dirname, '..', 'remote_fabric', this.orgName, 'Org1Admin', 'privateKey', 'key');
-        logger.debug(`Org admin keyPath: ${keyPath}`);
-        const keyPEM = Buffer.from(fs.readFileSync(keyPath)).toString() ;//Buffer.from(this.readAllFiles(keyPath)[0]).toString();
 
-        //const certPath = path.join(__dirname, '..', 'remote_fabric', this.orgName, this.credFileName, 'publicCert', 'cert');//path.join(this.cryptoDirPath, admin.cert);
-        const certPath = path.join(__dirname, '..', 'remote_fabric', this.orgName, 'Org1Admin', 'publicCert', 'cert');
-        logger.debug(`The certPath: ${certPath}`);
-        const certPEM = fs.readFileSync(certPath).toString()//this.readAllFiles(certPath)[0].toString();
+        const keyPEM = Buffer.from(privateKey).toString()
+        const certPEM = publicCert.toString()
 
         const client = this.getClientForOrg(org);
         const cryptoSuite = FabricClient.newCryptoSuite();
@@ -369,7 +324,7 @@ export default class FabricHelper {
         logger.debug(`certPEM: ${inspect(certPEM)}`);
 
         return await client.createUser({
-            username: 'peer' + org + 'Admin',
+            username: 'org1admin',
             mspid: org,
             cryptoContent: {
                 privateKeyPEM: keyPEM,

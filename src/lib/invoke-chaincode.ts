@@ -35,7 +35,6 @@ export async function invokeChaincode(
     org: string,
     queryOnly: boolean,
     timeout: number,
-    cryptoDir: string,
     credentialFilePath: string
 ): Promise<ResponseObject> {
     logger.debug(
@@ -48,7 +47,6 @@ export async function invokeChaincode(
         networkConfigFilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-        cryptoDir,
         org,
         credentialFilePath
     );
@@ -56,7 +54,7 @@ export async function invokeChaincode(
     const client = fabricHelper.getClientForOrg(org);
     let tx_id: FabricClient.TransactionId = null;
 
-    await fabricHelper.getOrgAdmin(org);
+    await fabricHelper.getOrgAdmin(org, credentialFilePath);
 
     await channel.initialize();
 

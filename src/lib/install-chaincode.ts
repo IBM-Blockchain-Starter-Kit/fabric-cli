@@ -29,7 +29,6 @@ export async function installChaincode(
     chaincodePath: string,
     chaincodeVersion: string,
     org: string,
-    cryptoDir: string,
     chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE,
     credentialFilePath: string
 ): Promise<void> {
@@ -46,36 +45,34 @@ export async function installChaincode(
         networkConfigFilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-        cryptoDir,
         org,
         credentialFilePath
     );
 
-    //generate certificates from user credentials cli parameter
-    helper.generateCertificates();
+    // let gateway = await helper.getGateway();
+    // if (!gateway){
+    //     console.log('gateway not found..');
+    //     return
+    // }
 
-    let gateway = await helper.getGateway();
-    if (!gateway){
-        console.log('gateway not found..');
-        return
-    }
+    // let network = await gateway.getNetwork('channel1');
+    // if (!network){
+    //     console.log('network not found..');
+    //     return
+    // } 
 
-    let network = await gateway.getNetwork('channel1');
-    if (!network){
-        console.log('network not found..');
-        return
-    } 
+    // const networkPeers = network.getChannel().getChannelPeers();
+    // if (!networkPeers){
+    //     console.log('peers not found..');
+    //     return
+    // }
 
-    const networkPeers = network.getChannel().getChannelPeers();
-    if (!networkPeers){
-        console.log('peers not found..');
-        return
-    }
+    // return;
 
     const channel = helper.getChannelForOrg(org);
     const client = helper.getClientForOrg(org);
 
-    const user: FabricClient.User = await helper.getOrgAdmin(org);
+    const user: FabricClient.User = await helper.getOrgAdmin(org, credentialFilePath);
 
     logger.debug(`Successfully retrieved admin user: ${user}`);
 

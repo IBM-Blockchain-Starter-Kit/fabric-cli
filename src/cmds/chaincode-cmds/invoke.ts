@@ -73,7 +73,6 @@ export async function handler(argv) {
         argv['org'],
         argv['query'],
         argv['timeout'],
-        argv['crypto-dir'],
         argv['org-credentials']
     );
 }
