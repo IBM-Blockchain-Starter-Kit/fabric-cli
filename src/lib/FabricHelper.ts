@@ -20,9 +20,6 @@ import * as fs from 'fs-extra';
 import * as log4js from 'log4js';
 import * as path from 'path';
 import { inspect } from 'util';
-import { Gateway, Network } from 'fabric-network';
-//fix this
-import {CreateGateway} from './CreateGateway'
 
 const logger = log4js.getLogger('FabricHelper')
 
@@ -200,10 +197,6 @@ export default class FabricHelper {
 
     private channel: string;
     private keyValueStoreBasePath: string;
-
-    private gateway : Gateway;
-    private objCreateGateway = new CreateGateway();
-    private ccp;
     private orgName;
     private connectionProfile;
 
@@ -220,9 +213,7 @@ export default class FabricHelper {
         this.caClients = {};
         this.channel = channelName;
         this.keyValueStoreBasePath = keyValueStoreBasePath;
-        this.gateway
-        this.ccp = networkConfigFilePath
-        this.connectionProfile = require(this.ccp);
+        this.connectionProfile = require(networkConfigFilePath);
 
         // set up the client and channel objects for each org
         this.orgName = org;
@@ -265,14 +256,6 @@ export default class FabricHelper {
 
     // APIs
     
-
-//change org1admin, org1adminpw
-    public async getGateway(){
-        this.gateway = await this.objCreateGateway.setupGateway(this.ccp, this.orgName, 'org1admin', 'org1adminpw')
-        return this.gateway;
-    }
-
-
     public getChannelForOrg(org: string): FabricClient.Channel {
         return this.channels[org];
     }
@@ -300,7 +283,6 @@ export default class FabricHelper {
         }
         logger.debug(`Getting org admin for user org: ${org}`);
 
-
         const keyPEM = Buffer.from(privateKey).toString()
         const certPEM = publicCert.toString()
 
@@ -324,7 +306,7 @@ export default class FabricHelper {
         logger.debug(`certPEM: ${inspect(certPEM)}`);
 
         return await client.createUser({
-            username: 'org1admin',
+            username: 'peer' + org + 'Admin',
             mspid: org,
             cryptoContent: {
                 privateKeyPEM: keyPEM,

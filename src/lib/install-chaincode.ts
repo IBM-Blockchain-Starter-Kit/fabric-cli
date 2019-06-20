@@ -48,30 +48,9 @@ export async function installChaincode(
         org,
         credentialFilePath
     );
-
-    // let gateway = await helper.getGateway();
-    // if (!gateway){
-    //     console.log('gateway not found..');
-    //     return
-    // }
-
-    // let network = await gateway.getNetwork('channel1');
-    // if (!network){
-    //     console.log('network not found..');
-    //     return
-    // } 
-
-    // const networkPeers = network.getChannel().getChannelPeers();
-    // if (!networkPeers){
-    //     console.log('peers not found..');
-    //     return
-    // }
-
-    // return;
-
+    
     const channel = helper.getChannelForOrg(org);
     const client = helper.getClientForOrg(org);
-
     const user: FabricClient.User = await helper.getOrgAdmin(org, credentialFilePath);
 
     logger.debug(`Successfully retrieved admin user: ${user}`);
