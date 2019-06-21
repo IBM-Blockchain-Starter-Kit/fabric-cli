@@ -23,13 +23,6 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
-        .option('admin-identity', {
-            demandOption: true,
-            describe:
-                'Absolute path to where the user credentials are located',
-            requiresArg: true,
-            type: 'string'
-        })
         .option('channel', {
             demandOption: true,
             describe: 'Name of the channel to invoke chaincode',
@@ -66,6 +59,13 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'number',
             default: 120000
+        })
+        .option('admin-identity', {
+            demandOption: true,
+            describe:
+                'Absolute path to where the user credentials are located',
+            requiresArg: true,
+            type: 'string'
         });
 }
 

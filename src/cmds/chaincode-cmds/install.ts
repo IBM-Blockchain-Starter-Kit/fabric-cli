@@ -36,7 +36,7 @@ export function builder(yargs) {
         .option('cc-type', {
             demandOption: false,
             describe:
-                'The langauge in which your chaincode is written, default=golang.',
+                'The language in which your chaincode is written, default=golang.',
             choices: ['golang', 'java', 'node'],
             type: 'string'
         })
@@ -48,7 +48,7 @@ export function builder(yargs) {
             type: 'string'
         })
         .option('channel', {
-            demandOption: true,
+            demandOption: false,
             describe: 'Name of the channel to install chaincode',
             requiresArg: true,
             type: 'string'

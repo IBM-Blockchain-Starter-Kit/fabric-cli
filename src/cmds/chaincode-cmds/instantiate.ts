@@ -23,13 +23,6 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
-        .option('admin-identity', {
-            demandOption: true,
-            describe:
-                'Absolute path to where the user credentials are located',
-            requiresArg: true,
-            type: 'string'
-        })
         .option('cc-version', {
             demandOption: true,
             describe: 'The version of chaincode to instantiate',
@@ -44,7 +37,7 @@ export function builder(yargs) {
             type: 'string'
         })
         .option('channel', {
-            demandOption: true,
+            demandOption: false,
             describe: 'Name of the channel to instantiate chaincode',
             requiresArg: true,
             type: 'string'
@@ -79,6 +72,13 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string',
             default: null
+        })
+        .option('admin-identity', {
+            demandOption: true,
+            describe:
+                'Absolute path to where the user credentials are located',
+            requiresArg: true,
+            type: 'string'
         })
         .check(function(argv) {
             //validate endorsement policy (i.e. validate it is JSON)
