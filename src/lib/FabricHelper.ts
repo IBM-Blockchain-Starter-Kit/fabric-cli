@@ -365,9 +365,9 @@ export default class FabricHelper {
         const orgPeers = this.connectionProfile.organizations[org].peers;
         
         orgPeers.forEach(function(currentPeer){
-            let peerUrl = connectionProfile.peers[currentPeer].url;       
-            let peerCert = connectionProfile.peers[currentPeer].tlsCACerts;
-            let tlsCertPEMPeer = peerCert.pem;
+            const peerUrl = connectionProfile.peers[currentPeer].url;       
+            const peerCert = connectionProfile.peers[currentPeer].tlsCACerts;
+            const tlsCertPEMPeer = peerCert.pem;
             let opts: FabricClient.ConnectionOpts = {};
 
             if (peerUrl.includes('grpcs')) {
