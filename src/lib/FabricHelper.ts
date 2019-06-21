@@ -361,13 +361,18 @@ export default class FabricHelper {
         client: FabricClient
     ) {
         const orgMspId: string = this.orgName;
-
-        for (const key in this.connectionProfile.peers) {
+        const connectionProfile = this.connectionProfile;
+        const orgPeers = this.connectionProfile.organizations[org].peers;
+        
+        orgPeers.forEach(function(currentPeer){
+            let peerUrl = connectionProfile.peers[currentPeer].url;       
+            let peerCert = connectionProfile.peers[currentPeer].tlsCACerts;
+            let tlsCertPEMPeer = peerCert.pem;
             let opts: FabricClient.ConnectionOpts = {};
-            let tlsCertPEMPeer = this.connectionProfile.peers[key].tlsCACerts.pem;
-            if (this.connectionProfile.peers[key].url.includes('grpcs')) {
+
+            if (peerUrl.includes('grpcs')) {
                 logger.debug(`grcps protocol detected for peers in ${org}`);                        
-                if (!this.connectionProfile.peers[key].tlsCACerts) {
+                if (!peerCert) {
                     logger.error(
                         `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
                     );
@@ -385,15 +390,14 @@ export default class FabricHelper {
             }
 
             const peer = client.newPeer(
-                this.connectionProfile.peers[key].url,
+                peerUrl,
                 opts
             );
-            peer.setName(key);
+            peer.setName(currentPeer);
 
             channel.addPeer(peer, orgMspId);
-        }
+            });
     }
-
 
     private readAllFiles(dir: string): string[] {
         let files: any = fs.readdirSync(dir);
