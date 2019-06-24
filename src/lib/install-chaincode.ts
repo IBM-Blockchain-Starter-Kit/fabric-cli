@@ -23,7 +23,7 @@ import { DEFAULT_CHAINCODE_TYPE } from './constants';
 const logger = FabricHelper.getLogger('install-chaincode');
 
 export async function installChaincode(
-    networkConfigFilePath: string,
+    connectionProfilePath: string,
     channelName: string,
     chaincodeName: string,
     chaincodePath: string,
@@ -42,7 +42,7 @@ export async function installChaincode(
     ];
 
     const helper: FabricHelper = new FabricHelper(
-        networkConfigFilePath,
+        connectionProfilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
         org,

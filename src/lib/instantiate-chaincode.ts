@@ -23,7 +23,7 @@ import FabricHelper from './FabricHelper';
 const logger = FabricHelper.getLogger('instantiate-chaincode');
 
 export async function instantiateChaincode(
-    networkConfigFilePath: string,
+    connectionProfilePath: string,
     channelName: string,
     chaincodeName: string,
     chaincodeVersion: number,
@@ -42,7 +42,7 @@ export async function instantiateChaincode(
     let tx_id: FabricClient.TransactionId = null;
 
     const helper = new FabricHelper(
-        networkConfigFilePath,
+        connectionProfilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
         org,

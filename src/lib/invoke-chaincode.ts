@@ -27,7 +27,7 @@ interface ResponseObject {
 }
 
 export async function invokeChaincode(
-    networkConfigFilePath: string,
+    connectionProfilePath: string,
     channelName: string,
     chaincodeName: string,
     functionName: string,
@@ -44,7 +44,7 @@ export async function invokeChaincode(
     let response: ResponseObject;
     let proposalResponses: FabricClient.ProposalResponseObject;
     const fabricHelper = new FabricHelper(
-        networkConfigFilePath,
+        connectionProfilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
         org,

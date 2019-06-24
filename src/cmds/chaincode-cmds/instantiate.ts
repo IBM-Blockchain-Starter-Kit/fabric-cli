@@ -37,7 +37,7 @@ export function builder(yargs) {
             type: 'string'
         })
         .option('channel', {
-            demandOption: false,
+            demandOption: true,
             describe: 'Name of the channel to instantiate chaincode',
             requiresArg: true,
             type: 'string'

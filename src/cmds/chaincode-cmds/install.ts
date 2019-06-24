@@ -47,12 +47,11 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
-        .option('channel', {
-            demandOption: false,
-            describe: 'Name of the channel to install chaincode',
-            requiresArg: true,
-            type: 'string'
-        })
+        // .option('channel', {
+        //     demandOption: false,
+        //     describe: 'Name of the channel to install chaincode',
+        //     type: 'string'
+        // })
         .option('admin-identity', {
             demandOption: true,
             describe:

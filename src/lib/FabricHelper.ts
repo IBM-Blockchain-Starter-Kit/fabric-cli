@@ -243,46 +243,28 @@ export default class FabricHelper {
 
         this.setupPeers(channel, this.orgName, client);
 
-        //orgPeers.forEach(function (currentPeer) {
-        //1.  use foreach
-        //2.  remove var >> use const
-        //3.  read certificate auth from the correct org >> get the ca from 'ca' block.
-        // ========> I need the name of the key for the "caName" and using forEach makes it such that I can't access that
-    
-        for (var key in this.connectionProfile.certificateAuthorities) {
-            const caName = key;
-            const caUrl = this.connectionProfile.certificateAuthorities[key].url;
 
-            logger.info('The Org for this CA is: ' + this.orgName);
-            logger.info('The CA Name is: ' + caName);
-            logger.info('The CA UrL is: ' + caUrl);
-            this.caClients[orgName] = new CaClient(
-                caUrl,
-                null /*defautl TLS opts*/,
-                caName,
-                cryptoSuite
-            );
-
-        }
-
-        // const ca = this.connectionProfile.organizations[orgName].certificateAuthorities[0];     //maybe this shouldn't be [0] ... what  if there's more?
-        // const connectionProfileCaArray = Object.keys(this.connectionProfile.certificateAuthorities ).map(i => this.connectionProfile.certificateAuthorities [i])
-        // connectionProfileCaArray.forEach(function(currentCa){console.log(currentCa)}
-        //     if(currentCa == ca){
-        //         const caName = currentCa;
-        //         const caUrl = currentCa.url;
-    
-        //         logger.info('The Org for this CA is: ' + this.orgName);
-        //         logger.info('The CA Name is: ' + caName);
-        //         logger.info('The CA UrL is: ' + caUrl);
-        //         this.caClients[orgName] = new CaClient(
-        //             caUrl,
-        //             null /*defautl TLS opts*/,
-        //             caName,
-        //             cryptoSuite
-        //         );
-        //     }
-        // })
+        // can this be made more efficient? ... gateway?
+        const CAfromOrg = this.connectionProfile.organizations[orgName].certificateAuthorities;
+        const connProfCa = this.connectionProfile.certificateAuthorities;
+        const self = this;
+        CAfromOrg.forEach(function(orgCa){
+            Object.keys(connProfCa).forEach(function(currentCa){
+                if(currentCa == orgCa){
+                    const caName = currentCa;
+                    const caUrl = connProfCa[currentCa].url;
+                    logger.info('The Org for this CA is: ' + orgName);
+                    logger.info('The CA Name is: ' + caName);
+                    logger.info('The CA UrL is: ' + caUrl);
+                    self.caClients[orgName] = new CaClient(
+                        caUrl,
+                        null /*defautl TLS opts*/,
+                        caName,
+                        cryptoSuite
+                    );
+                }
+            })
+        });
     }
 
     // APIs
