@@ -214,7 +214,7 @@ export default class FabricHelper {
         this.caClients = {};
         this.keyValueStoreBasePath = keyValueStoreBasePath;
         this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
-        this.channel;       //this isn't working, fix this! For some reason, still requiring a channel. Maybe because channel value is used earlier than I  think.
+        this.channel;      
         if(channelName){
             this.channel = channelName;
         }
