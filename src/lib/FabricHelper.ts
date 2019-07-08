@@ -20,6 +20,9 @@ import * as fs from 'fs-extra';
 import * as log4js from 'log4js';
 import * as path from 'path';
 import { inspect } from 'util';
+import { CreateGateway } from './CreateGateway';
+import { Gateway } from 'fabric-network';
+import { connect } from 'net';
 
 const logger = log4js.getLogger('FabricHelper')
 
@@ -199,6 +202,10 @@ export default class FabricHelper {
     private keyValueStoreBasePath: string;
     private orgName;
     private connectionProfile;
+    private gateway : Gateway;
+    private objCreateGateway = new CreateGateway();
+    private connectionProfilePath;
+    private credentialFilePath;
 
 
 
@@ -209,13 +216,15 @@ export default class FabricHelper {
         orgName: string, 
         credentialFilePath: string
     ) {
+        this.credentialFilePath = credentialFilePath;
+        this.connectionProfilePath = connectionProfilePath;
         this.clients = {};
         this.channels = {};
         this.caClients = {};
         this.keyValueStoreBasePath = keyValueStoreBasePath;
         this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
         this.channel;      
-        if(channelName){
+        if(channelName){        //remove this
             this.channel = channelName;
         }
         else{
@@ -235,6 +244,8 @@ export default class FabricHelper {
         );
         client.setCryptoSuite(cryptoSuite);
 
+
+        //change this, because we're not given the channel
         const channel = client.newChannel(this.channel);
         channel.addOrderer(this.newOrderer(client));
 
@@ -269,12 +280,33 @@ export default class FabricHelper {
 
     // APIs
 
+
+    public async getGateway(){
+        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, 'org1admin', 'org1adminpw')       //This has to come from connection profile
+        return this.gateway;
+    }
+
+
     public getChannelForOrg(org: string): FabricClient.Channel {
         return this.channels[org];
     }
 
     public getClientForOrg(org: string): FabricClient {
         return this.clients[org];
+    }
+
+    public getPrivKey(){
+        const base64BufferEncoding = 'base64';
+        const credentials = JSON.parse(fs.readFileSync(this.credentialFilePath));
+        const privateKey = Buffer.from(credentials.private_key, base64BufferEncoding).toString();
+        return privateKey;
+    }
+
+    public getPubCert(){
+        const base64BufferEncoding = 'base64';
+        const credentials = JSON.parse(fs.readFileSync(this.credentialFilePath));
+        const publicCert = Buffer.from(credentials.cert, base64BufferEncoding).toString();
+        return publicCert;
     }
 
     public async getOrgAdmin(org: string, credentialsFilePath: string): Promise<FabricClient.User> {
@@ -287,6 +319,9 @@ export default class FabricHelper {
                 'Failed to find the credentails file for IBPv2 in the current path'
             );
         }
+
+        const privTest = this.getPrivKey();
+        const pubTest = this.getPubCert();
         const credentials = JSON.parse(fs.readFileSync(credentialsFilePath));
         privateKey = Buffer.from(credentials.private_key, base64BufferEncoding).toString();
         publicCert = Buffer.from(credentials.cert, base64BufferEncoding).toString();
@@ -310,9 +345,10 @@ export default class FabricHelper {
         const certPEM = publicCert.toString()
 
         const client = this.getClientForOrg(org);
+        //const client = this.gateway.getClient();
         const cryptoSuite = FabricClient.newCryptoSuite();
 
-        cryptoSuite.setCryptoKeyStore(
+        cryptoSuite.setCryptoKeyStore(                      //do we need this? use this approach for the rest of the code
             FabricClient.newCryptoKeyStore({
                 path: this.getKeyStoreForOrg(this.orgName)
             })
@@ -348,9 +384,6 @@ export default class FabricHelper {
         let url: string = "";
         let tlsCertPEMOrderer = "";
         let tlsCertOrderer = "";
-
-
-
         
         const connectionProfileOrderersArray = Object.keys(this.connectionProfile.orderers ).map(i => this.connectionProfile.orderers [i])
         connectionProfileOrderersArray.forEach(function(currentOrderer){

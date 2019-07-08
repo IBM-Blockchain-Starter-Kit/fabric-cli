@@ -50,8 +50,31 @@ export async function invokeChaincode(
         org,
         credentialFilePath
     );
-    const channel = fabricHelper.getChannelForOrg(org);
-    const client = fabricHelper.getClientForOrg(org);
+
+    let gateway = await fabricHelper.getGateway();
+    if (!gateway){
+        console.log('gateway not found..');
+        return
+    }
+    if (gateway == null || gateway == undefined){
+        logger.info('invalid gateway object')
+    }
+
+   
+    let network = await gateway.getNetwork('channel1');
+    if (!network){
+        console.log('network not found..');
+        return
+    } 
+    if (network == null || network == undefined){
+        logger.info('invalid network object')
+    }
+
+
+    const client = gateway.getClient();
+    const channel = network.getChannel();
+
+
     let tx_id: FabricClient.TransactionId = null;
 
     await fabricHelper.getOrgAdmin(org, credentialFilePath);

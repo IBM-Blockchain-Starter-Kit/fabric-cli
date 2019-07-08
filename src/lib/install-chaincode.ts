@@ -48,18 +48,30 @@ export async function installChaincode(
         org,
         credentialFilePath
     );
-    
-    const channel = helper.getChannelForOrg(org);
-    const client = helper.getClientForOrg(org);
+
+
+    const gateway = await helper.getGateway();
+    if (!gateway){
+        logger.info('gateway not found..');
+        return
+    }
+    if (gateway == null || gateway == undefined){
+        logger.info('invalid gateway object')
+    }
+
+
+    const client = gateway.getClient();
+
+
     const user: FabricClient.User = await helper.getOrgAdmin(org, credentialFilePath);
+    
+
+    const installTargetPeers = client.getPeersForOrg(org);
 
     logger.debug(`Successfully retrieved admin user: ${user}`);
 
-    // Need to convert targets from ChannelPeer to Peer
-    const installTargets = channel.getPeers().map((peer) => peer.getPeer());
-
     const request: FabricClient.ChaincodeInstallRequest = {
-        targets: installTargets,
+        targets: installTargetPeers,
         chaincodePath: chaincodePath,
         chaincodeId: chaincodeName,
         chaincodeVersion: chaincodeVersion,
@@ -81,12 +93,13 @@ export async function installChaincode(
 
     FabricHelper.inspectProposalResponses(installProposalResponses);
 
-    const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
-        channel
-    );
+    // })
+    // const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
+    //     channel
+    // );
 
     logger.info(
-        `Successfully installed chaincode (${chaincodeName}) on peers (${peerNames}) for organization ${org}`
+        `Successfully installed chaincode (${chaincodeName}) on peers (${installTargetPeers}) for organization ${org}`
     );
 }
 

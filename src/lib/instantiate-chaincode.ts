@@ -48,14 +48,41 @@ export async function instantiateChaincode(
         org,
         credentialFilePath
     );
-    const channel = helper.getChannelForOrg(org);
-    const client = helper.getClientForOrg(org);
+
+
+    let gateway = await helper.getGateway();
+    if (!gateway){
+        console.log('gateway not found..');
+        return
+    }
+    if (gateway == null || gateway == undefined){
+        logger.info('invalid gateway object')
+    }
+
+   
+    let network = await gateway.getNetwork('channel1');
+    if (!network){
+        console.log('network not found..');
+        return
+    } 
+    if (network == null || network == undefined){
+        logger.info('invalid network object')
+    }
+
+
+    const client = gateway.getClient();
+    const channel = network.getChannel();
+
+
     const user = await helper.getOrgAdmin(org, credentialFilePath);
+    
+    /*
     const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
         channel
     );
+    */
 
-    // TODO: turn on service discovery so when we call getPeer(), we get an upto date peer
+    // TODO: turn on service discovery so when we call getPeer(), we get an upto date peer]
 
     const { upgrade, versionToDeploy } = await checkIsUpgradeAndGetVersion(
         channel,
@@ -67,13 +94,14 @@ export async function instantiateChaincode(
     if (!chaincodeVersion) {
         chaincodeVersion = versionToDeploy;
     }
+    
 
     await channel.initialize();
 
     tx_id = client.newTransactionID();
 
     logger.info(
-        `Attempting to deploy ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${peerNames})`
+        `Attempting to deploy ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${client.getPeersForOrg(org)})`
     );
 
     const deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest = buildDeploymentOptions(
@@ -89,7 +117,7 @@ export async function instantiateChaincode(
     await deployChaincode(channel, deploymentOptions, upgrade, timeout);
 
     logger.info(
-        `Successfully deployed ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${peerNames})`
+        `Successfully deployed ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${client.getPeersForOrg(org)})`
     );
 }
 
