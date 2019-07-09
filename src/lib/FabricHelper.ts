@@ -227,9 +227,6 @@ export default class FabricHelper {
         if(channelName){        
             this.channel = channelName;
         }
-        else{
-            this.channel = this.connectionProfile.name;
-        }
         
 
         // Set up the client and channel objects for each org
@@ -242,14 +239,6 @@ export default class FabricHelper {
             })
         );
         client.setCryptoSuite(cryptoSuite);
-
-
-        //change this, because we're not given the channel
-        const channel = client.newChannel(this.channel);
-        channel.addOrderer(this.newOrderer(client));
-
-        this.setupPeers(channel, orgName, client);
-
 
         // Get the appropriate CA for the specified org
         const CAfromOrg = this.connectionProfile.organizations[orgName].certificateAuthorities;
@@ -281,7 +270,6 @@ export default class FabricHelper {
         this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, 'org1admin', 'org1adminpw', this.credentialFilePath)       //This has to come from connection profile
         return this.gateway;
     }
-
 
     // Create admin user identity
     public async getOrgAdmin(org: string, credentialsFilePath: string): Promise<FabricClient.User> {

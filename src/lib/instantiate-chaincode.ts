@@ -69,11 +69,8 @@ export async function instantiateChaincode(
         logger.info('invalid network object')
     }
 
-
     const client = gateway.getClient();
     const channel = network.getChannel();
-
-
     const user = await helper.getOrgAdmin(org, credentialFilePath);
     
     /*
