@@ -60,7 +60,7 @@ export async function instantiateChaincode(
     }
 
    
-    let network = await gateway.getNetwork('channel1');
+    let network = await gateway.getNetwork(channelName);
     if (!network){
         console.log('network not found..');
         return

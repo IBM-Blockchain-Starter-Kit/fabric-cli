@@ -49,7 +49,6 @@ export async function installChaincode(
         credentialFilePath
     );
 
-
     const gateway = await helper.getGateway();
     if (!gateway){
         logger.info('gateway not found..');
@@ -59,13 +58,8 @@ export async function installChaincode(
         logger.info('invalid gateway object')
     }
 
-
     const client = gateway.getClient();
-
-
     const user: FabricClient.User = await helper.getOrgAdmin(org, credentialFilePath);
-    
-
     const installTargetPeers = client.getPeersForOrg(org);
 
     logger.debug(`Successfully retrieved admin user: ${user}`);

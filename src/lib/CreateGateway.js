@@ -51,7 +51,7 @@ class CreateGateway {
   /**
    * Connect the gateway instance
    */
-  async setupGateway(commConnProfilePath, orgName, enrollId, enrollSecret) {
+  async setupGateway(commConnProfilePath, orgName, enrollId, enrollSecret, credentialFilePath) {
     console.log('entering >>> setupGateway()');
 
     try {
@@ -63,13 +63,10 @@ class CreateGateway {
       // user enroll and import if identity not found in wallet
       const idExists = await walletHelper.identityExists(user);
       if (!idExists) {
-        //const a = helper.getOrgAdmin();
         console.log(`Enrolling and importing ${user} into wallet`);
-        const enrollInfo = await util.userEnroll(org, user, pw, commConnProfilePath);
-        const privKeyTest = "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgFLXfsgFgi+U+rEuV\nEpabG+Ke05+pvnX8hY9DCLt34uehRANCAATwtDtbrgAkGQeaPmQmEWg6jzrzyEbq\na47FrjjpxbbmSMVgpsKaVIzJgtDhr7FhB3zJhMe11JNeqJiwOr9pIEbw\n-----END PRIVATE KEY-----"
-        const pubCertTest = "-----BEGIN CERTIFICATE-----\nMIICTjCCAfWgAwIBAgIUaQszw6+ihThwx8tOz7fEEQbIiwswCgYIKoZIzj0EAwIw\naDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK\nEwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt\nY2Etc2VydmVyMB4XDTE5MDYyODE1NDAwMFoXDTIwMDYyNzE1NDUwMFowJTEPMA0G\nA1UECxMGY2xpZW50MRIwEAYDVQQDEwlvcmcxYWRtaW4wWTATBgcqhkjOPQIBBggq\nhkjOPQMBBwNCAATwtDtbrgAkGQeaPmQmEWg6jzrzyEbqa47FrjjpxbbmSMVgpsKa\nVIzJgtDhr7FhB3zJhMe11JNeqJiwOr9pIEbwo4G/MIG8MA4GA1UdDwEB/wQEAwIH\ngDAMBgNVHRMBAf8EAjAAMB0GA1UdDgQWBBTt0M7zdu0JW2mRobuDwvIca80LojAf\nBgNVHSMEGDAWgBQ+bb2aLQYRG4405S9aRf40b2N3ajBcBggqAwQFBgcIAQRQeyJh\ndHRycyI6eyJoZi5BZmZpbGlhdGlvbiI6IiIsImhmLkVucm9sbG1lbnRJRCI6Im9y\nZzFhZG1pbiIsImhmLlR5cGUiOiJjbGllbnQifX0wCgYIKoZIzj0EAwIDRwAwRAIg\ndsz1AeXW36Siv/Zm/v+0GkGQLzgraTKe1qkBaR8wjNgCIG8qR4CvPymr8J+0DJwu\nxpVP5HUEqEusB3xzo4gD/dEp\n-----END CERTIFICATE-----"
-        //await walletHelper.importIdentity(user, org, enrollInfo.certificate, enrollInfo.key);
-        await walletHelper.importIdentity(user, org, pubCertTest, privKeyTest);
+        const privateKey = walletHelper.getPrivateKey(credentialFilePath);
+        const publicCert = walletHelper.getPublicCert(credentialFilePath);
+        await walletHelper.importIdentity(user, org, publicCert, privateKey);
       }
 
       // gateway and contract connection
@@ -88,7 +85,6 @@ class CreateGateway {
       return this.gateway;
 
     } catch (err) {
-      //logger.error(err.message);
       console.log(err.message);
       throw new Error(err.message);
     }

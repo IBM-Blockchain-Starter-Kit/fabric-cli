@@ -70,10 +70,8 @@ export async function invokeChaincode(
         logger.info('invalid network object')
     }
 
-
     const client = gateway.getClient();
     const channel = network.getChannel();
-
 
     let tx_id: FabricClient.TransactionId = null;
 

@@ -21,8 +21,9 @@ import * as log4js from 'log4js';
 import * as path from 'path';
 import { inspect } from 'util';
 import { CreateGateway } from './CreateGateway';
-import { Gateway } from 'fabric-network';
+import { Gateway, FileSystemWallet } from 'fabric-network';
 import { connect } from 'net';
+const walletHelper = require(`../helpers/wallet`);
 
 const logger = log4js.getLogger('FabricHelper')
 
@@ -216,15 +217,14 @@ export default class FabricHelper {
         orgName: string, 
         credentialFilePath: string
     ) {
+        this.orgName = orgName;
         this.credentialFilePath = credentialFilePath;
         this.connectionProfilePath = connectionProfilePath;
-        this.clients = {};
-        this.channels = {};
         this.caClients = {};
         this.keyValueStoreBasePath = keyValueStoreBasePath;
         this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
         this.channel;      
-        if(channelName){        //remove this
+        if(channelName){        
             this.channel = channelName;
         }
         else{
@@ -232,14 +232,13 @@ export default class FabricHelper {
         }
         
 
-        // set up the client and channel objects for each org
-        this.orgName = orgName;
+        // Set up the client and channel objects for each org
         const client = new FabricClient();
 
         const cryptoSuite = FabricClient.newCryptoSuite();
         cryptoSuite.setCryptoKeyStore(
             FabricClient.newCryptoKeyStore({
-                path: this.getKeyStoreForOrg(this.orgName)
+                path: this.getKeyStoreForOrg(orgName)
             })
         );
         client.setCryptoSuite(cryptoSuite);
@@ -249,13 +248,10 @@ export default class FabricHelper {
         const channel = client.newChannel(this.channel);
         channel.addOrderer(this.newOrderer(client));
 
-        this.clients[this.orgName] = client;
-        this.channels[this.orgName] = channel;
-
-        this.setupPeers(channel, this.orgName, client);
+        this.setupPeers(channel, orgName, client);
 
 
-        // can this be made more efficient? ... gateway?
+        // Get the appropriate CA for the specified org
         const CAfromOrg = this.connectionProfile.organizations[orgName].certificateAuthorities;
         const connProfCa = this.connectionProfile.certificateAuthorities;
         const self = this;
@@ -280,51 +276,22 @@ export default class FabricHelper {
 
     // APIs
 
-
+    // Set Gateway connection
     public async getGateway(){
-        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, 'org1admin', 'org1adminpw')       //This has to come from connection profile
+        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, 'org1admin', 'org1adminpw', this.credentialFilePath)       //This has to come from connection profile
         return this.gateway;
     }
 
 
-    public getChannelForOrg(org: string): FabricClient.Channel {
-        return this.channels[org];
-    }
-
-    public getClientForOrg(org: string): FabricClient {
-        return this.clients[org];
-    }
-
-    public getPrivKey(){
-        const base64BufferEncoding = 'base64';
-        const credentials = JSON.parse(fs.readFileSync(this.credentialFilePath));
-        const privateKey = Buffer.from(credentials.private_key, base64BufferEncoding).toString();
-        return privateKey;
-    }
-
-    public getPubCert(){
-        const base64BufferEncoding = 'base64';
-        const credentials = JSON.parse(fs.readFileSync(this.credentialFilePath));
-        const publicCert = Buffer.from(credentials.cert, base64BufferEncoding).toString();
-        return publicCert;
-    }
-
+    // Create admin user identity
     public async getOrgAdmin(org: string, credentialsFilePath: string): Promise<FabricClient.User> {
-        const base64BufferEncoding = 'base64';
-        let privateKey;
-        let publicCert;
-
         if (!fs.existsSync(credentialsFilePath)) {
             throw new Error(
                 'Failed to find the credentails file for IBPv2 in the current path'
             );
         }
-
-        const privTest = this.getPrivKey();
-        const pubTest = this.getPubCert();
-        const credentials = JSON.parse(fs.readFileSync(credentialsFilePath));
-        privateKey = Buffer.from(credentials.private_key, base64BufferEncoding).toString();
-        publicCert = Buffer.from(credentials.cert, base64BufferEncoding).toString();
+        const privateKey = walletHelper.getPrivateKey(credentialsFilePath);
+        const publicCert = walletHelper.getPublicCert(credentialsFilePath);
 
         if(privateKey == null ||  privateKey.length == 0){
             throw new Error(
@@ -344,22 +311,7 @@ export default class FabricHelper {
         const keyPEM = Buffer.from(privateKey).toString()
         const certPEM = publicCert.toString()
 
-        const client = this.getClientForOrg(org);
-        //const client = this.gateway.getClient();
-        const cryptoSuite = FabricClient.newCryptoSuite();
-
-        cryptoSuite.setCryptoKeyStore(                      //do we need this? use this approach for the rest of the code
-            FabricClient.newCryptoKeyStore({
-                path: this.getKeyStoreForOrg(this.orgName)
-            })
-        );
-        client.setCryptoSuite(cryptoSuite);
-
-        const store = await FabricClient.newDefaultKeyValueStore({
-            path: this.getKeyStoreForOrg(this.orgName)
-        });
-
-        client.setStateStore(store);
+        const client = this.gateway.getClient();
 
         logger.debug(`keyPEM: ${inspect(keyPEM)}`);
         logger.debug(`certPEM: ${inspect(certPEM)}`);
@@ -423,8 +375,6 @@ export default class FabricHelper {
         const connectionProfile = this.connectionProfile;
         const orgPeers = this.connectionProfile.organizations[org].peers;
 
-        // see why we cannot access connection profile directly or via parameter
-        // what is the exact reason ????
         orgPeers.forEach(function (currentPeer) {
             const peerUrl = connectionProfile.peers[currentPeer].url;
             const peerCert = connectionProfile.peers[currentPeer].tlsCACerts;

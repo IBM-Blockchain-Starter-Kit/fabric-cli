@@ -14,12 +14,11 @@
  *  limitations under the License.
  */
 
+import * as fs from 'fs-extra';
 const log4js = require('log4js');
 const config = require('config');
 const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
-//fix this
 const fsWallet = new FileSystemWallet(`${__dirname}/../wallet`);
-//const fsWallet = new FileSystemWallet(`${__dirname}/../wallet`);     //Need to read from elsewhere ***** is this correct ??
 const logger = log4js.getLogger('helpers - wallet');
 logger.setLevel(config.logLevel);
 
@@ -27,6 +26,7 @@ logger.setLevel(config.logLevel);
  * Wallet object
  */
 const wallet = {};
+const base64BufferEncoding = 'base64';
 
 /**
  * Return FileSystemWallet object
@@ -46,6 +46,27 @@ wallet.identityExists = async (id) => {
   console.log(`${id} exists in wallet: ${exists}`);
   return exists;
 };
+
+
+/**
+ *
+ * @param {string} credentialFilePath - Path to file containing admin credentials
+ */
+wallet.getPrivateKey = (credentialFilePath) => {
+  const credentials = JSON.parse(fs.readFileSync(credentialFilePath));
+  const privateKey = Buffer.from(credentials.private_key, base64BufferEncoding).toString();
+  return privateKey;
+}
+
+/**
+ *
+ * @param {string} credentialFilePath - Path to file containing admin credentials
+ */
+wallet.getPublicCert = (credentialFilePath) => {
+  const credentials = JSON.parse(fs.readFileSync(credentialFilePath));
+  const publicCert = Buffer.from(credentials.cert, base64BufferEncoding).toString();
+  return publicCert;
+}
 
 /**
  *
