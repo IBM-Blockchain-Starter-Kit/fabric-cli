@@ -17,8 +17,6 @@
 
 const config = require('config');
 const { Gateway } = require('fabric-network');
-
-const util = require(`../helpers/util`);
 const walletHelper = require(`../helpers/wallet`);
 const helper = require('./FabricHelper');
 

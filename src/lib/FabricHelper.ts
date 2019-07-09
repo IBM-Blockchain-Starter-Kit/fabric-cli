@@ -207,6 +207,8 @@ export default class FabricHelper {
     private objCreateGateway = new CreateGateway();
     private connectionProfilePath;
     private credentialFilePath;
+    private enrollId;
+    private enrollSecret;
 
 
 
@@ -223,6 +225,8 @@ export default class FabricHelper {
         this.caClients = {};
         this.keyValueStoreBasePath = keyValueStoreBasePath;
         this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
+        this.enrollId;
+        this.enrollSecret;
         this.channel;      
         if(channelName){        
             this.channel = channelName;
@@ -261,13 +265,18 @@ export default class FabricHelper {
                 }
             })
         });
+
+        //Obtain enrollId and enrollSecret from connection profile
+        this.enrollId = this.connectionProfile.certificateAuthorities[CAfromOrg].registrar.enrollId;
+        this.enrollSecret = this.connectionProfile.certificateAuthorities[CAfromOrg].registrar.enrollSecret;
+
     }
 
     // APIs
 
     // Set Gateway connection
     public async getGateway(){
-        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, 'org1admin', 'org1adminpw', this.credentialFilePath)       //This has to come from connection profile
+        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, this.enrollId, this.enrollSecret, this.credentialFilePath)       //This has to come from connection profile
         return this.gateway;
     }
 
@@ -319,99 +328,99 @@ export default class FabricHelper {
         return this.keyValueStoreBasePath + '_' + org;
     }
 
-    private newOrderer(client: FabricClient): FabricClient.Orderer {
-        let serverNameObject;
-        let url: string = "";
-        let tlsCertPEMOrderer = "";
-        let tlsCertOrderer = "";
+    // private newOrderer(client: FabricClient): FabricClient.Orderer {
+    //     let serverNameObject;
+    //     let url: string = "";
+    //     let tlsCertPEMOrderer = "";
+    //     let tlsCertOrderer = "";
         
-        const connectionProfileOrderersArray = Object.keys(this.connectionProfile.orderers ).map(i => this.connectionProfile.orderers [i])
-        connectionProfileOrderersArray.forEach(function(currentOrderer){
-            tlsCertOrderer = currentOrderer.tlsCACerts
-            tlsCertPEMOrderer = currentOrderer.tlsCACerts.pem;
-            url = currentOrderer.url;
-        });
+    //     const connectionProfileOrderersArray = Object.keys(this.connectionProfile.orderers ).map(i => this.connectionProfile.orderers [i])
+    //     connectionProfileOrderersArray.forEach(function(currentOrderer){
+    //         tlsCertOrderer = currentOrderer.tlsCACerts
+    //         tlsCertPEMOrderer = currentOrderer.tlsCACerts.pem;
+    //         url = currentOrderer.url;
+    //     });
 
-        let opts: FabricClient.ConnectionOpts = {};
-        if (url.includes('grpcs')) {
-            logger.debug(
-                `grcps protocol detected for orderer in ${serverNameObject}`
-            );
-            if (!tlsCertOrderer) {
-                logger.error(
-                    `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
-                );
-                throw new Error(
-                    `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
-                );
-            }
+    //     let opts: FabricClient.ConnectionOpts = {};
+    //     if (url.includes('grpcs')) {
+    //         logger.debug(
+    //             `grcps protocol detected for orderer in ${serverNameObject}`
+    //         );
+    //         if (!tlsCertOrderer) {
+    //             logger.error(
+    //                 `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
+    //             );
+    //             throw new Error(
+    //                 `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
+    //             );
+    //         }
 
-            const caroots = Buffer.from(tlsCertPEMOrderer).toString();
-            opts = {
-                pem: caroots
-            };
-        }
+    //         const caroots = Buffer.from(tlsCertPEMOrderer).toString();
+    //         opts = {
+    //             pem: caroots
+    //         };
+    //     }
 
-        return client.newOrderer(url, opts);
-    }
-    private setupPeers(
-        channel: FabricClient.Channel,
-        org: string,
-        client: FabricClient
-    ) {
-        const orgMspId: string = this.orgName;
-        const connectionProfile = this.connectionProfile;
-        const orgPeers = this.connectionProfile.organizations[org].peers;
+    //     return client.newOrderer(url, opts);
+    // }
+    // private setupPeers(
+    //     channel: FabricClient.Channel,
+    //     org: string,
+    //     client: FabricClient
+    // ) {
+    //     const orgMspId: string = this.orgName;
+    //     const connectionProfile = this.connectionProfile;
+    //     const orgPeers = this.connectionProfile.organizations[org].peers;
 
-        orgPeers.forEach(function (currentPeer) {
-            const peerUrl = connectionProfile.peers[currentPeer].url;
-            const peerCert = connectionProfile.peers[currentPeer].tlsCACerts;
-            const tlsCertPEMPeer = peerCert.pem;
+    //     orgPeers.forEach(function (currentPeer) {
+    //         const peerUrl = connectionProfile.peers[currentPeer].url;
+    //         const peerCert = connectionProfile.peers[currentPeer].tlsCACerts;
+    //         const tlsCertPEMPeer = peerCert.pem;
            
-            let opts: FabricClient.ConnectionOpts = {};
+    //         let opts: FabricClient.ConnectionOpts = {};
 
-            if (peerUrl.includes('grpcs')) {
-                logger.debug(`grcps protocol detected for peers in ${org}`);
-                if (!peerCert) {
-                    logger.error(
-                        `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
-                    );
-                    throw new Error(
-                        `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
-                    );
-                }
+    //         if (peerUrl.includes('grpcs')) {
+    //             logger.debug(`grcps protocol detected for peers in ${org}`);
+    //             if (!peerCert) {
+    //                 logger.error(
+    //                     `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
+    //                 );
+    //                 throw new Error(
+    //                     `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
+    //                 );
+    //             }
 
-                logger.debug('\nData from file:');
-                logger.debug(Buffer.from(tlsCertPEMPeer).toString());
+    //             logger.debug('\nData from file:');
+    //             logger.debug(Buffer.from(tlsCertPEMPeer).toString());
 
-                opts = {
-                    pem: Buffer.from(tlsCertPEMPeer).toString()
-                };
-            }
+    //             opts = {
+    //                 pem: Buffer.from(tlsCertPEMPeer).toString()
+    //             };
+    //         }
 
-            const peer = client.newPeer(
-                peerUrl,
-                opts
-            );
-            peer.setName(currentPeer);
+    //         const peer = client.newPeer(
+    //             peerUrl,
+    //             opts
+    //         );
+    //         peer.setName(currentPeer);
 
-            channel.addPeer(peer, orgMspId);
-        });
-    }
+    //         channel.addPeer(peer, orgMspId);
+    //     });
+    // }
 
-    private readAllFiles(dir: string): string[] {
-        let files: any = fs.readdirSync(dir);
-        // We should remove hidden files to avoid nasty surprises
-        // For instance, macOS may add the infamous .DS_Store file
-        files = files.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item));
-        const certs = [];
-        files.forEach((file_name) => {
-            const file_path = path.join(dir, file_name);
-            const data = fs.readFileSync(file_path);
-            certs.push(data);
-        });
-        return certs;
-    }
+    // private readAllFiles(dir: string): string[] {
+    //     let files: any = fs.readdirSync(dir);
+    //     // We should remove hidden files to avoid nasty surprises
+    //     // For instance, macOS may add the infamous .DS_Store file
+    //     files = files.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item));
+    //     const certs = [];
+    //     files.forEach((file_name) => {
+    //         const file_path = path.join(dir, file_name);
+    //         const data = fs.readFileSync(file_path);
+    //         certs.push(data);
+    //     });
+    //     return certs;
+    // }
 }
 
 // Not implemented yet

@@ -76,6 +76,10 @@
             "caName": "ca",
             "tlsCACerts": {
                 "pem": "-----BEGIN CERTIFICATE-----\r\nMIICdzCCAeCgAwIBAgIJUhUAjHiSOqvfMA0GCSqGSIb3DQEBBQUAMHMxFjAUBgNV\r\nBAMTDTE3My4xOTMuNzkuOTcxCzAJBgNVBAYTAlVTMRcwFQYDVQQIEw5Ob3J0aCBD\r\nYXJvbGluYTEQMA4GA1UEBxMHUmFsZWlnaDEMMAoGA1UEChMDSUJNMRMwEQYDVQQL\r\nEwpCbG9ja2NoYWluMB4XDTE5MDYyODE1MzkxMFoXDTIwMDYyNzE1MzkxMFowczEW\r\nMBQGA1UEAxMNMTczLjE5My43OS45NzELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5v\r\ncnRoIENhcm9saW5hMRAwDgYDVQQHEwdSYWxlaWdoMQwwCgYDVQQKEwNJQk0xEzAR\r\nBgNVBAsTCkJsb2NrY2hhaW4wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBALR+\r\n8VRLsskRPhVF2/0WnZHBAp+MTl31ejbzEBuj/Ucb9ll0Dj3dtrqo1jctzcWo/Dg8\r\nIRgXaC8ZHAk052nQRAuolQwR2oOTgHL/70+vWPqj2EGEaW3tgTlg116zrtovWvzd\r\n0T8W7e6KevWVs8hb0vPnl7xJn8cayxx5sECf85p9AgMBAAGjEzARMA8GA1UdEQQI\r\nMAaHBK3BT2EwDQYJKoZIhvcNAQEFBQADgYEAEhbeSarJSshZhBRdJst6cUwYG9Nr\r\nwbOaRUDWVhyZUREjAXRtzFN/laeZrhBUuTfRzenbi5bUIDjY8Yac7WaXi/3z2G2K\r\ntdWkWzhR9emF1mZNPcSxKsSC58gOYmvM36AwPfBDermVTY/adlqtKwdQgespeoBG\r\nxR6vDh3BhW2u8Gw=\r\n-----END CERTIFICATE-----\r\n"
+            },
+            "registrar": {
+                "enrollId": "org1admin",
+                "enrollSecret": "org1adminpw"
             }
         }
     }

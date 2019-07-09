@@ -51,6 +51,7 @@ wallet.identityExists = async (id) => {
 /**
  *
  * @param {string} credentialFilePath - Path to file containing admin credentials
+ * @returns {string} - Private Key read from Credential File
  */
 wallet.getPrivateKey = (credentialFilePath) => {
   const credentials = JSON.parse(fs.readFileSync(credentialFilePath));
@@ -61,6 +62,7 @@ wallet.getPrivateKey = (credentialFilePath) => {
 /**
  *
  * @param {string} credentialFilePath - Path to file containing admin credentials
+ * @returns {string} - Public Certificate read from Credential File
  */
 wallet.getPublicCert = (credentialFilePath) => {
   const credentials = JSON.parse(fs.readFileSync(credentialFilePath));
