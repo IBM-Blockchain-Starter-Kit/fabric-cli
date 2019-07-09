@@ -18,7 +18,7 @@ import * as CaClient from 'fabric-ca-client';
 import * as FabricClient from 'fabric-client';
 import * as fs from 'fs-extra';
 import * as log4js from 'log4js';
-import * as path from 'path';
+import * as path from 'path'; // remove unused imports ...
 import { inspect } from 'util';
 import { CreateGateway } from './CreateGateway';
 import { Gateway, FileSystemWallet } from 'fabric-network';
@@ -110,16 +110,18 @@ export default class FabricHelper {
         }
     }
 
-    public static getPeerNamesAsStringForChannel(
-        channel: FabricClient.Channel
-    ): string {
-        const peerNames: string[] = [];
-        for (const peer of channel.getPeers()) {
-            peerNames.push(peer.getName());
-        }
+    //Kept for logging,
 
-        return peerNames.join(',');
-    }
+    // public static getPeerNamesAsStringForChannel(
+    //     channel: FabricClient.Channel
+    // ): string {
+    //     const peerNames: string[] = [];
+    //     for (const peer of channel.getPeers()) {
+    //         peerNames.push(peer.getName());
+    //     }
+
+    //     return peerNames.join(',');
+    // }
 
     public static registerAndConnectTxEventHub(
         channel: FabricClient.Channel,
@@ -195,10 +197,7 @@ export default class FabricHelper {
 
         return proposalResponses;
     }
-    private clients: object;
-    private channels: object;
     private caClients: any;
-
     private channel: string;
     private keyValueStoreBasePath: string;
     private orgName;
@@ -227,10 +226,10 @@ export default class FabricHelper {
         this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
         this.enrollId;
         this.enrollSecret;
-        this.channel;      
+        this.channel ;      
         if(channelName){        
             this.channel = channelName;
-        }
+        }       //check if channel has valid string type -- else throw an error
         
 
         // Set up the client and channel objects for each org
@@ -245,6 +244,7 @@ export default class FabricHelper {
         client.setCryptoSuite(cryptoSuite);
 
         // Get the appropriate CA for the specified org
+        //caFromOrg
         const CAfromOrg = this.connectionProfile.organizations[orgName].certificateAuthorities;
         const connProfCa = this.connectionProfile.certificateAuthorities;
         const self = this;
@@ -267,6 +267,7 @@ export default class FabricHelper {
         });
 
         //Obtain enrollId and enrollSecret from connection profile
+        //put this in a try catch -- throw exception
         this.enrollId = this.connectionProfile.certificateAuthorities[CAfromOrg].registrar.enrollId;
         this.enrollSecret = this.connectionProfile.certificateAuthorities[CAfromOrg].registrar.enrollSecret;
 
@@ -290,15 +291,15 @@ export default class FabricHelper {
         const privateKey = walletHelper.getPrivateKey(credentialsFilePath);
         const publicCert = walletHelper.getPublicCert(credentialsFilePath);
 
-        if(privateKey == null ||  privateKey.length == 0){
+        if(privateKey == null ||  privateKey.length == 0){      //do string typecheck ... find a way to check for null, undefined, empty
             throw new Error(
                 'Error: private key is invalid'
             );
         }
 
-        if(publicCert == null ||  publicCert.length == 0){
+        if(publicCert == null ||  publicCert.length == 0){ //same as above
             throw new Error(
-                'Error: public certificate is invalid'
+                'Error: public certificate is invalid'   
             );
         }
 
@@ -314,7 +315,7 @@ export default class FabricHelper {
         logger.debug(`certPEM: ${inspect(certPEM)}`);
 
         return await client.createUser({
-            username: 'peer' + org + 'Admin',
+            username: 'peer' + org + 'Admin', // use backtick notation == ${..},
             mspid: org,
             cryptoContent: {
                 privateKeyPEM: keyPEM,
@@ -324,7 +325,7 @@ export default class FabricHelper {
         });
     }
 
-    private getKeyStoreForOrg(org: string): string {
+    private getKeyStoreForOrg(org: string): string {            //remove this method, and simply use what it returns in the cryptosuite path
         return this.keyValueStoreBasePath + '_' + org;
     }
 

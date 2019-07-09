@@ -61,7 +61,7 @@ export async function invokeChaincode(
     }
 
    
-    let network = await gateway.getNetwork('channel1');
+    let network = await gateway.getNetwork(channelName);
     if (!network){
         console.log('network not found..');
         return
@@ -76,6 +76,7 @@ export async function invokeChaincode(
     let tx_id: FabricClient.TransactionId = null;
 
     await fabricHelper.getOrgAdmin(org, credentialFilePath);
+    //log admin
 
     await channel.initialize();
 

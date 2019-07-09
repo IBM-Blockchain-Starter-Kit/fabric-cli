@@ -62,18 +62,20 @@ export async function instantiateChaincode(
    
     let network = await gateway.getNetwork(channelName);
     if (!network){
-        console.log('network not found..');
+        console.log('network not found..');             // change to logger.error       ^^above and in other files if necessary        
         return
     } 
     if (network == null || network == undefined){
-        logger.info('invalid network object')
+        logger.info('invalid network object')           // change to logger.error
     }
 
     const client = gateway.getClient();
     const channel = network.getChannel();
     const user = await helper.getOrgAdmin(org, credentialFilePath);
+
+    logger.debug(`Successfully retrieved admin user: ${user}`);
     
-    /*
+    /* Improve logging
     const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
         channel
     );
@@ -88,7 +90,7 @@ export async function instantiateChaincode(
     );
 
     // Override deployment version if one is given. Not yet supported as command line param is currently required.
-    if (!chaincodeVersion) {
+    if (!chaincodeVersion) { //valid null or typecheck
         chaincodeVersion = versionToDeploy;
     }
     
@@ -111,6 +113,7 @@ export async function instantiateChaincode(
         args
     );
 
+    //what happes if the following call fails.. who catches it and logs it ???  make / find a clear error message
     await deployChaincode(channel, deploymentOptions, upgrade, timeout);
 
     logger.info(

@@ -28,7 +28,7 @@ export async function installChaincode(
     chaincodeName: string,
     chaincodePath: string,
     chaincodeVersion: string,
-    org: string,
+    org: string, //orgName
     chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE,
     credentialFilePath: string
 ): Promise<void> {
@@ -50,12 +50,12 @@ export async function installChaincode(
     );
 
     const gateway = await helper.getGateway();
-    if (!gateway){
-        logger.info('gateway not found..');
+    if (!gateway){          //do typechecks for all high level objects
+        logger.error('gateway not found..');
         return
     }
     if (gateway == null || gateway == undefined){
-        logger.info('invalid gateway object')
+        logger.error('invalid gateway object')
     }
 
     const client = gateway.getClient();
@@ -87,11 +87,12 @@ export async function installChaincode(
 
     FabricHelper.inspectProposalResponses(installProposalResponses);
 
-    // })
+
     // const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
     //     channel
     // );
 
+    //installTargetPeers is  printing entire payload -- simply print peer names
     logger.info(
         `Successfully installed chaincode (${chaincodeName}) on peers (${installTargetPeers}) for organization ${org}`
     );
@@ -114,6 +115,7 @@ async function installChaincodeOnPeersInRequest(
         );
         proposalResponses = await client.installChaincode(request);
     } catch (err) {
+        const errMessage = `` //change this..
         logger.error(`Failed to send install proposal due to error: ` + err);
         throw new Error(`Failed to send install proposal due to error: ` + err);
     }
