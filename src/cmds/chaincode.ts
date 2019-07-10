@@ -28,18 +28,23 @@ export function builder(yargs): any {
                 'Absolute path for connection profile file based on  FAB-5363 format',
             type: 'string'
         })
-        .check(function(argv) {
+        .check(function (argv) {
             //validate file exists
             if (!fs.existsSync(argv['conn-profile'])) {
                 throw new Error(
                     'Invalid --conn-profile argument.  File does not exist: ' +
-                        argv['conn-profile']
+                    argv['conn-profile']
                 );
             }
             //validate file format
             let connProfile = require(argv['conn-profile']);
-            if (!connProfile.hasOwnProperty('organizations') &&
+            if (!connProfile.hasOwnProperty('name') &&
+                !connProfile.hasOwnProperty('description') &&
+                !connProfile.hasOwnProperty('version') &&
                 !connProfile.hasOwnProperty('client') &&
+                !connProfile.hasOwnProperty('organizations') &&
+                !connProfile.hasOwnProperty('orderers') &&
+                !connProfile.hasOwnProperty('peers') &&
                 !connProfile.hasOwnProperty('certificateAuthorities')) {
                 throw new Error(
                     'Invalid --conn-profile argument. Invalid format.'
@@ -54,7 +59,7 @@ export function builder(yargs): any {
             requiresArg: true,
             type: 'string'
         })
-        .check(function(argv) {
+        .check(function (argv) {
             //get the network configuration file.  by now this has already been validated that it exists
             FabricClient.addConfigFile(argv['conn-profile']);
             //make sure the org specified is in the network-config file
@@ -62,8 +67,8 @@ export function builder(yargs): any {
             if (!orgs[argv.org]) {
                 throw new Error(
                     "Invalid --org argument. Organization '" +
-                        argv.org +
-                        "' not found in connection-profile file."
+                    argv.org +
+                    "' not found in connection-profile file."
                 );
             }
             return true;
@@ -74,11 +79,11 @@ export function builder(yargs): any {
                 'Absolute path for exported admin identity',
             type: 'string'
         })
-        .check(function(argv) {
+        .check(function (argv) {
             if (!fs.existsSync(argv['admin-identity'])) {
                 throw new Error(
                     'Invalid --admin-identity argument.  Directory does not exist: ' +
-                        argv['admin-identity']
+                    argv['admin-identity']
                 );
             }
             return true;

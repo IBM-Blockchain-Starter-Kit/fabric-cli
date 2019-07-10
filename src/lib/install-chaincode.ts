@@ -28,12 +28,12 @@ export async function installChaincode(
     chaincodeName: string,
     chaincodePath: string,
     chaincodeVersion: string,
-    org: string, //orgName
+    orgName: string,
     chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE,
     credentialFilePath: string
 ): Promise<void> {
     logger.debug(
-        `============ Install chaincode called for organization: ${org} ============`
+        `============ Install chaincode called for organization: ${orgName} ============`
     );
 
     let installProposalResponses: [
@@ -45,22 +45,31 @@ export async function installChaincode(
         connectionProfilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-        org,
+        orgName,
         credentialFilePath
     );
 
     const gateway = await helper.getGateway();
-    if (!gateway){          //do typechecks for all high level objects
+    if (!gateway) {          
         logger.error('gateway not found..');
         return
     }
-    if (gateway == null || gateway == undefined){
+    if (gateway == null || gateway == undefined) {
         logger.error('invalid gateway object')
     }
 
     const client = gateway.getClient();
-    const user: FabricClient.User = await helper.getOrgAdmin(org, credentialFilePath);
-    const installTargetPeers = client.getPeersForOrg(org);
+    if (client == null || client == undefined) {
+        throw 'Client is not defined'
+    }
+    const user: FabricClient.User = await helper.getOrgAdmin(orgName, credentialFilePath);
+    if (user == null || user == undefined) {
+        throw 'User is not defined'
+    }
+    const installTargetPeers = client.getPeersForOrg(orgName);
+    if (installTargetPeers == null || installTargetPeers.length === 0) {
+        throw 'Target peers not found'
+    }
 
     logger.debug(`Successfully retrieved admin user: ${user}`);
 
@@ -94,7 +103,7 @@ export async function installChaincode(
 
     //installTargetPeers is  printing entire payload -- simply print peer names
     logger.info(
-        `Successfully installed chaincode (${chaincodeName}) on peers (${installTargetPeers}) for organization ${org}`
+        `Successfully installed chaincode (${chaincodeName}) on peers (${installTargetPeers}) for organization ${orgName}`
     );
 }
 
@@ -115,9 +124,9 @@ async function installChaincodeOnPeersInRequest(
         );
         proposalResponses = await client.installChaincode(request);
     } catch (err) {
-        const errMessage = `` //change this..
-        logger.error(`Failed to send install proposal due to error: ` + err);
-        throw new Error(`Failed to send install proposal due to error: ` + err);
+        const errMessage = `Failed to send install proposal due to error: ${err}`
+        logger.error(errMessage);
+        throw new Error(errMessage);
     }
 
     return proposalResponses;

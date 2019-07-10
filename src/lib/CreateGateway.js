@@ -15,10 +15,10 @@
  */
 
 
-const config = require('config');
+
 const { Gateway } = require('fabric-network');
 const walletHelper = require(`../helpers/wallet`);
-const helper = require('./FabricHelper');
+
 
 
 /**
@@ -32,43 +32,32 @@ class CreateGateway {
 
   constructor() {
     this.gateway = new Gateway();
-    console.log('Setup Gateway constructor called...')
+    // logger.debug('Setup Gateway constructor called...')
   }
-
-  // /**
-  //  * Connect the gateway instance. After creating the middlewares, it will create the routes with
-  //  * the connection middleware and the existing router with controllers and other midddlwares
-  //  */
-  // async setup() {
-  //   console.log('entering >>> setup()');
-
-  //   // create and connect gateway
-  //   await this.setupGateway();
-  // }
 
   /**
    * Connect the gateway instance
    */
   async setupGateway(commConnProfilePath, orgName, enrollId, enrollSecret, credentialFilePath) {
-    console.log('entering >>> setupGateway()');
+    // logger.debug('entering >>> setupGateway()');
 
     try {
       const org = orgName;
-      const user = enrollId; 
+      const user = enrollId;
       const pw = enrollSecret;
       //const { serviceDiscovery } = fabricConfig;
 
       // user enroll and import if identity not found in wallet
       const idExists = await walletHelper.identityExists(user);
       if (!idExists) {
-        console.log(`Enrolling and importing ${user} into wallet`);
+        // logger.debug(`Enrolling and importing ${user} into wallet`);
         const privateKey = walletHelper.getPrivateKey(credentialFilePath);
         const publicCert = walletHelper.getPublicCert(credentialFilePath);
         await walletHelper.importIdentity(user, org, publicCert, privateKey);
       }
 
       // gateway and contract connection
-      console.log('Connecting to gateway');
+      // logger.debug('Connecting to gateway');
       await this.gateway.connect(commConnProfilePath, {
         identity: user,
         wallet: walletHelper.getWallet(),
@@ -77,20 +66,20 @@ class CreateGateway {
           asLocalhost: false  //serviceDiscovery.asLocalhost,   //change
         },
       });
-      console.log('Setup Gateway connected...');
-      console.log('Connected to gateway');
+      // logger.debug('Setup Gateway connected...');
+      // logger.debug('Connected to gateway');
 
       return this.gateway;
 
     } catch (err) {
-      console.log(err.message);
+      // logger.error(err.message);
       throw new Error(err.message);
     }
 
-    console.log('exiting <<< setupGateway()');
+    // logger.debug('exiting <<< setupGateway()');
   }
 
-  
+
 
 }
 

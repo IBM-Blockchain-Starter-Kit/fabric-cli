@@ -32,7 +32,7 @@ const base64BufferEncoding = 'base64';
  * Return FileSystemWallet object
  */
 wallet.getWallet = () => {
-  console.log('entering >>> getWallet()');
+  logger.debug('entering >>> getWallet()');
   return fsWallet;
 };
 
@@ -41,9 +41,9 @@ wallet.getWallet = () => {
  * @param {string} id - label of id in wallet
  */
 wallet.identityExists = async (id) => {
-  console.log('entering >>> identityExists()');
+  logger.debug('entering >>> identityExists()');
   const exists = await fsWallet.exists(id);
-  console.log(`${id} exists in wallet: ${exists}`);
+  logger.debug(`${id} exists in wallet: ${exists}`);
   return exists;
 };
 
@@ -78,16 +78,14 @@ wallet.getPublicCert = (credentialFilePath) => {
  * @param {string} key - key from enrolling user
  */
 wallet.importIdentity = async (id, org, cert, key) => {
-  console.log('entering >>> importIdentity()');
+  logger.debug('entering >>> importIdentity()');
   try {
-    console.log(`Importing ${id} into wallet`);
+    logger.debug(`Importing ${id} into wallet`);
     await fsWallet.import(id, X509WalletMixin.createIdentity(org, cert, key));
   } catch (err) {
-    console.log(`Error importing ${id} into wallet: ${err}`);
+    logger.error(`Error importing ${id} into wallet: ${err}`);
     throw new Error(err);
   }
 };
-
-console.log(wallet);
 
 module.exports = wallet;

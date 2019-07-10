@@ -18,6 +18,7 @@ import { installChaincode } from '../../lib/install-chaincode';
 export const command: string = 'install';
 export const desc: string = 'Install chaincode';
 
+
 export function builder(yargs) {
     return yargs
         .option('cc-name', {

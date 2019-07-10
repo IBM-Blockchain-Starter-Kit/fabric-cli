@@ -32,7 +32,7 @@ export async function invokeChaincode(
     chaincodeName: string,
     functionName: string,
     args: string[],
-    org: string,
+    orgName: string,
     queryOnly: boolean,
     timeout: number,
     credentialFilePath: string
@@ -47,36 +47,46 @@ export async function invokeChaincode(
         connectionProfilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-        org,
+        orgName,
         credentialFilePath
     );
 
     let gateway = await fabricHelper.getGateway();
-    if (!gateway){
-        console.log('gateway not found..');
+    if (!gateway) {
+        logger.error('gateway not found..');
         return
     }
-    if (gateway == null || gateway == undefined){
-        logger.info('invalid gateway object')
+    if (gateway == null || gateway == undefined) {
+        logger.error('invalid gateway object')
     }
 
-   
+
     let network = await gateway.getNetwork(channelName);
-    if (!network){
-        console.log('network not found..');
+    if (!network) {
+        logger.error('network not found..');
         return
-    } 
-    if (network == null || network == undefined){
-        logger.info('invalid network object')
+    }
+    if (network == null || network == undefined) {
+        logger.error('invalid network object')
     }
 
     const client = gateway.getClient();
+    if (client == null || client == undefined) {
+        throw 'Client is not defined'
+    }
     const channel = network.getChannel();
+    if (channel == null || channel == undefined) {
+        throw 'Channel is not defined'
+    }
 
     let tx_id: FabricClient.TransactionId = null;
 
-    await fabricHelper.getOrgAdmin(org, credentialFilePath);
-    //log admin
+    const user = await fabricHelper.getOrgAdmin(orgName, credentialFilePath);
+    if (user == null || user == undefined) {
+        throw 'User is not defined'
+    }
+
+    logger.debug(`Successfully retrieved admin user: ${user}`);
 
     await channel.initialize();
 

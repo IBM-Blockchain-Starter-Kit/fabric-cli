@@ -18,11 +18,9 @@ import * as CaClient from 'fabric-ca-client';
 import * as FabricClient from 'fabric-client';
 import * as fs from 'fs-extra';
 import * as log4js from 'log4js';
-import * as path from 'path'; // remove unused imports ...
 import { inspect } from 'util';
 import { CreateGateway } from './CreateGateway';
-import { Gateway, FileSystemWallet } from 'fabric-network';
-import { connect } from 'net';
+import { Gateway } from 'fabric-network';
 const walletHelper = require(`../helpers/wallet`);
 
 const logger = log4js.getLogger('FabricHelper')
@@ -66,7 +64,7 @@ export default class FabricHelper {
                 }`
             );
         }
-//gitchange
+        //gitchange
         // For TS, need to cast all elements to ProposalResponses. We know all are at this point.
         const proposalResponses = responses as FabricClient.ProposalResponse[];
 
@@ -202,7 +200,7 @@ export default class FabricHelper {
     private keyValueStoreBasePath: string;
     private orgName;
     private connectionProfile;
-    private gateway : Gateway;
+    private gateway: Gateway;
     private objCreateGateway = new CreateGateway();
     private connectionProfilePath;
     private credentialFilePath;
@@ -212,10 +210,10 @@ export default class FabricHelper {
 
 
     constructor(
-        connectionProfilePath: string, 
-        channelName: string, 
+        connectionProfilePath: string,
+        channelName: string,
         keyValueStoreBasePath: string,
-        orgName: string, 
+        orgName: string,
         credentialFilePath: string
     ) {
         this.orgName = orgName;
@@ -226,31 +224,26 @@ export default class FabricHelper {
         this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
         this.enrollId;
         this.enrollSecret;
-        this.channel ;      
-        if(channelName){        
-            this.channel = channelName;
-        }       //check if channel has valid string type -- else throw an error
-        
+        this.channel = channelName;
 
-        // Set up the client and channel objects for each org
+
+        // Set up the client object
         const client = new FabricClient();
-
         const cryptoSuite = FabricClient.newCryptoSuite();
         cryptoSuite.setCryptoKeyStore(
             FabricClient.newCryptoKeyStore({
-                path: this.getKeyStoreForOrg(orgName)
+                path: this.keyValueStoreBasePath + '_' + orgName
             })
         );
         client.setCryptoSuite(cryptoSuite);
 
         // Get the appropriate CA for the specified org
-        //caFromOrg
-        const CAfromOrg = this.connectionProfile.organizations[orgName].certificateAuthorities;
+        const caFromOrg = this.connectionProfile.organizations[orgName].certificateAuthorities;
         const connProfCa = this.connectionProfile.certificateAuthorities;
         const self = this;
-        CAfromOrg.forEach(function(orgCa){
-            Object.keys(connProfCa).forEach(function(currentCa){
-                if(currentCa == orgCa){
+        caFromOrg.forEach(function (orgCa) {
+            Object.keys(connProfCa).forEach(function (currentCa) {
+                if (currentCa == orgCa) {
                     const caName = currentCa;
                     const caUrl = connProfCa[currentCa].url;
                     logger.info('The Org for this CA is: ' + orgName);
@@ -267,21 +260,34 @@ export default class FabricHelper {
         });
 
         //Obtain enrollId and enrollSecret from connection profile
-        //put this in a try catch -- throw exception
-        this.enrollId = this.connectionProfile.certificateAuthorities[CAfromOrg].registrar.enrollId;
-        this.enrollSecret = this.connectionProfile.certificateAuthorities[CAfromOrg].registrar.enrollSecret;
+        try {
+            this.enrollId = this.connectionProfile.certificateAuthorities[caFromOrg].registrar.enrollId;
+            this.enrollSecret = this.connectionProfile.certificateAuthorities[caFromOrg].registrar.enrollSecret;
+        }
+        catch (error) {
+            logger.error(`Could not find credentials in connection profile. ${error}`)
+        }
 
     }
 
     // APIs
 
-    // Set Gateway connection
-    public async getGateway(){
-        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, this.enrollId, this.enrollSecret, this.credentialFilePath)       //This has to come from connection profile
+    /**
+     * 
+     * Set Gateway connection
+     * @returns {Gateway} - Gateway object 
+     */
+    public async getGateway() {
+        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, this.enrollId, this.enrollSecret, this.credentialFilePath)
         return this.gateway;
     }
 
-    // Create admin user identity
+    /**
+     * 
+     * @param org 
+     * @param credentialsFilePath 
+     * @returns {FabricClient.User} - Returns a user with Admin identity
+     */
     public async getOrgAdmin(org: string, credentialsFilePath: string): Promise<FabricClient.User> {
         if (!fs.existsSync(credentialsFilePath)) {
             throw new Error(
@@ -291,15 +297,15 @@ export default class FabricHelper {
         const privateKey = walletHelper.getPrivateKey(credentialsFilePath);
         const publicCert = walletHelper.getPublicCert(credentialsFilePath);
 
-        if(privateKey == null ||  privateKey.length == 0){      //do string typecheck ... find a way to check for null, undefined, empty
+        if (privateKey == null || privateKey.length == 0) {      //do string typecheck ... find a way to check for null, undefined, empty
             throw new Error(
                 'Error: private key is invalid'
             );
         }
 
-        if(publicCert == null ||  publicCert.length == 0){ //same as above
+        if (publicCert == null || publicCert.length == 0) { //same as above
             throw new Error(
-                'Error: public certificate is invalid'   
+                'Error: public certificate is invalid'
             );
         }
 
@@ -315,7 +321,7 @@ export default class FabricHelper {
         logger.debug(`certPEM: ${inspect(certPEM)}`);
 
         return await client.createUser({
-            username: 'peer' + org + 'Admin', // use backtick notation == ${..},
+            username: `peer${org}Admin`,
             mspid: org,
             cryptoContent: {
                 privateKeyPEM: keyPEM,
@@ -325,16 +331,16 @@ export default class FabricHelper {
         });
     }
 
-    private getKeyStoreForOrg(org: string): string {            //remove this method, and simply use what it returns in the cryptosuite path
-        return this.keyValueStoreBasePath + '_' + org;
-    }
+    // private getKeyStoreForOrg(org: string): string {            
+    //     return this.keyValueStoreBasePath + '_' + org;
+    // }
 
     // private newOrderer(client: FabricClient): FabricClient.Orderer {
     //     let serverNameObject;
     //     let url: string = "";
     //     let tlsCertPEMOrderer = "";
     //     let tlsCertOrderer = "";
-        
+
     //     const connectionProfileOrderersArray = Object.keys(this.connectionProfile.orderers ).map(i => this.connectionProfile.orderers [i])
     //     connectionProfileOrderersArray.forEach(function(currentOrderer){
     //         tlsCertOrderer = currentOrderer.tlsCACerts
@@ -377,7 +383,7 @@ export default class FabricHelper {
     //         const peerUrl = connectionProfile.peers[currentPeer].url;
     //         const peerCert = connectionProfile.peers[currentPeer].tlsCACerts;
     //         const tlsCertPEMPeer = peerCert.pem;
-           
+
     //         let opts: FabricClient.ConnectionOpts = {};
 
     //         if (peerUrl.includes('grpcs')) {

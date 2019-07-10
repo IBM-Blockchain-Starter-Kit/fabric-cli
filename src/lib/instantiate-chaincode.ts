@@ -29,14 +29,14 @@ export async function instantiateChaincode(
     chaincodeVersion: number,
     functionName: string,
     args: string[],
-    org: string,
+    orgName: string,
     timeout: number,
     endorsementPolicy: any,
     chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE,
     credentialFilePath: string
 ): Promise<void> {
     logger.debug(
-        `============ Deploying smart contract to all Peers on Channel ${chaincodeName} for organization ${org} ============`
+        `============ Deploying smart contract to all Peers on Channel ${chaincodeName} for organization ${orgName} ============`
     );
 
     let tx_id: FabricClient.TransactionId = null;
@@ -45,36 +45,44 @@ export async function instantiateChaincode(
         connectionProfilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-        org,
+        orgName,
         credentialFilePath
     );
 
-
     let gateway = await helper.getGateway();
-    if (!gateway){
-        console.log('gateway not found..');
+    if (!gateway) {
+        logger.error('gateway not found..');
         return
     }
-    if (gateway == null || gateway == undefined){
-        logger.info('invalid gateway object')
+    if (gateway == null || gateway == undefined) {
+        logger.error('invalid gateway object')
     }
 
-   
+
     let network = await gateway.getNetwork(channelName);
-    if (!network){
-        console.log('network not found..');             // change to logger.error       ^^above and in other files if necessary        
+    if (!network) {
+        logger.error('network not found..');
         return
-    } 
-    if (network == null || network == undefined){
-        logger.info('invalid network object')           // change to logger.error
+    }
+    if (network == null || network == undefined) {
+        logger.error('invalid network object')
     }
 
     const client = gateway.getClient();
+    if (client == null || client == undefined) {
+        throw 'Client is not defined'
+    }
     const channel = network.getChannel();
-    const user = await helper.getOrgAdmin(org, credentialFilePath);
+    if (channel == null || channel == undefined) {
+        throw 'Channel is not defined'
+    }
+    const user = await helper.getOrgAdmin(orgName, credentialFilePath);
+    if (user == null || user == undefined) {
+        throw 'User is not defined'
+    }
 
     logger.debug(`Successfully retrieved admin user: ${user}`);
-    
+
     /* Improve logging
     const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
         channel
@@ -85,22 +93,25 @@ export async function instantiateChaincode(
 
     const { upgrade, versionToDeploy } = await checkIsUpgradeAndGetVersion(
         channel,
-        channel.getPeers()[0].getName(),                                                            //here
+        channel.getPeers()[0].getName(),
         chaincodeName
     );
 
     // Override deployment version if one is given. Not yet supported as command line param is currently required.
-    if (!chaincodeVersion) { //valid null or typecheck
+    if (!chaincodeVersion) {
+        if (versionToDeploy == null) {
+            throw 'Version to deploy was not valid'
+        }
         chaincodeVersion = versionToDeploy;
     }
-    
+
 
     await channel.initialize();
 
     tx_id = client.newTransactionID();
 
     logger.info(
-        `Attempting to deploy ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${client.getPeersForOrg(org)})`
+        `Attempting to deploy ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${client.getPeersForOrg(orgName)})`
     );
 
     const deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest = buildDeploymentOptions(
@@ -117,7 +128,7 @@ export async function instantiateChaincode(
     await deployChaincode(channel, deploymentOptions, upgrade, timeout);
 
     logger.info(
-        `Successfully deployed ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${client.getPeersForOrg(org)})`
+        `Successfully deployed ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${client.getPeersForOrg(orgName)})`
     );
 }
 
@@ -170,7 +181,7 @@ async function checkIsUpgradeAndGetVersion(
     for (let i = 0; i < chaincodes.length; i++) {
         logger.debug(
             `Found instantiated chaincode: ${chaincodes[i].name}, version: ${
-                chaincodes[i].version
+            chaincodes[i].version
             }`
         );
         if (chaincodes[i].name === chaincodeName) {
