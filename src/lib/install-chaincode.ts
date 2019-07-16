@@ -19,6 +19,7 @@ import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
 import { inspect } from 'util';
 import { DEFAULT_CHAINCODE_TYPE } from './constants';
+import { Gateway } from 'fabric-network';
 
 const logger = FabricHelper.getLogger('install-chaincode');
 
@@ -49,62 +50,62 @@ export async function installChaincode(
         credentialFilePath
     );
 
-    const gateway = await helper.getGateway();
-    if (!gateway) {          
-        logger.error('gateway not found..');
-        return
-    }
-    if (gateway == null || gateway == undefined) {
-        logger.error('invalid gateway object')
-    }
+    try{
 
-    const client = gateway.getClient();
-    if (client == null || client == undefined) {
-        throw 'Client is not defined'
-    }
-    const user: FabricClient.User = await helper.getOrgAdmin(orgName, credentialFilePath);
-    if (user == null || user == undefined) {
-        throw 'User is not defined'
-    }
-    const installTargetPeers = client.getPeersForOrg(orgName);
-    if (installTargetPeers == null || installTargetPeers.length === 0) {
-        throw 'Target peers not found'
-    }
+    
+        const gateway: Gateway = await helper.getGateway();
+        if (!gateway) {
+            throw `Gateway object for org '${orgName}' is undefined, null, or empty`
+        }
 
-    logger.debug(`Successfully retrieved admin user: ${user}`);
+        const client: FabricClient = gateway.getClient();
+        if (!client) {
+            throw `Client object for org '${orgName}' is undefined, null, or empty`
+        }
+        const user: FabricClient.User = await helper.getOrgAdmin(orgName, credentialFilePath);
+        if (!user) {
+            throw `User object for org '${orgName}' is undefined, null, or empty`
+        }
+        const installTargetPeers: FabricClient.Peer[] = client.getPeersForOrg(orgName);
+        if (!installTargetPeers) {
+            throw `Target peers not found for org ${orgName}`
+        }
 
-    const request: FabricClient.ChaincodeInstallRequest = {
-        targets: installTargetPeers,
-        chaincodePath: chaincodePath,
-        chaincodeId: chaincodeName,
-        chaincodeVersion: chaincodeVersion,
-        chaincodeType: chaincodeType
-    };
+        logger.debug(`Successfully retrieved admin user: ${user}`);
 
-    logger.debug(
-        `Calling client.installChaincode with request: ${inspect(request)}`
-    );
+        const request: FabricClient.ChaincodeInstallRequest = {
+            targets: installTargetPeers,
+            chaincodePath: chaincodePath,
+            chaincodeId: chaincodeName,
+            chaincodeVersion: chaincodeVersion,
+            chaincodeType: chaincodeType
+        };
 
-    try {
-        installProposalResponses = await installChaincodeOnPeersInRequest(
-            client,
-            request
+        logger.debug(
+            `Calling client.installChaincode with request: ${inspect(request)}`
         );
-    } catch (err) {
-        throw err;
+
+        try {
+            installProposalResponses = await installChaincodeOnPeersInRequest(
+                client,
+                request
+            );
+        } catch (err) {
+            throw err;
+        }
+
+        FabricHelper.inspectProposalResponses(installProposalResponses);
+
+
+        const peerNames = FabricHelper.getPeerNamesAsString(installTargetPeers)
+
+        logger.info(
+            `Successfully installed chaincode (${chaincodeName}) on peers (${peerNames}) for organization ${orgName}`
+        );
     }
-
-    FabricHelper.inspectProposalResponses(installProposalResponses);
-
-
-    // const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
-    //     channel
-    // );
-
-    //installTargetPeers is  printing entire payload -- simply print peer names
-    logger.info(
-        `Successfully installed chaincode (${chaincodeName}) on peers (${installTargetPeers}) for organization ${orgName}`
-    );
+    catch(err){
+        logger.error(`Installation failed with org '${orgName}', channel '${channelName}'.  Error: ${err.message}`);
+    }
 }
 
 async function installChaincodeOnPeersInRequest(

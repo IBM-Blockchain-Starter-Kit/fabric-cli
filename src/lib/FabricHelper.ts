@@ -110,16 +110,13 @@ export default class FabricHelper {
 
     //Kept for logging,
 
-    // public static getPeerNamesAsStringForChannel(
-    //     channel: FabricClient.Channel
-    // ): string {
-    //     const peerNames: string[] = [];
-    //     for (const peer of channel.getPeers()) {
-    //         peerNames.push(peer.getName());
-    //     }
-
-    //     return peerNames.join(',');
-    // }
+    public static getPeerNamesAsString(arrayOfPeers: FabricClient.Peer[]){
+        let peerNames = [];
+        arrayOfPeers.forEach(function(peer) {
+            peerNames.push(peer.getName());
+        })
+        return peerNames
+    }
 
     public static registerAndConnectTxEventHub(
         channel: FabricClient.Channel,
@@ -196,7 +193,6 @@ export default class FabricHelper {
         return proposalResponses;
     }
     private caClients: any;
-    private channel: string;
     private keyValueStoreBasePath: string;
     private orgName;
     private connectionProfile;
@@ -224,7 +220,6 @@ export default class FabricHelper {
         this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
         this.enrollId;
         this.enrollSecret;
-        this.channel = channelName;
 
 
         // Set up the client object
@@ -278,7 +273,9 @@ export default class FabricHelper {
      * @returns {Gateway} - Gateway object 
      */
     public async getGateway() {
+        logger.debug('entering >>> setupGateway()');
         this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, this.enrollId, this.enrollSecret, this.credentialFilePath)
+        logger.debug('exiting <<< setupGateway()');
         return this.gateway;
     }
 
@@ -297,13 +294,13 @@ export default class FabricHelper {
         const privateKey = walletHelper.getPrivateKey(credentialsFilePath);
         const publicCert = walletHelper.getPublicCert(credentialsFilePath);
 
-        if (privateKey == null || privateKey.length == 0) {      //do string typecheck ... find a way to check for null, undefined, empty
+        if (privateKey == null || privateKey.length == 0 || typeof privateKey != "string") {
             throw new Error(
                 'Error: private key is invalid'
             );
         }
 
-        if (publicCert == null || publicCert.length == 0) { //same as above
+        if (publicCert == null || publicCert.length == 0 || typeof privateKey != "string") {
             throw new Error(
                 'Error: public certificate is invalid'
             );
