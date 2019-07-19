@@ -42,6 +42,8 @@ export async function installChaincode(
         FabricClient.Proposal
     ];
 
+    console.log(process.env.HOME);
+
     const helper: FabricHelper = new FabricHelper(
         connectionProfilePath,
         channelName,
@@ -104,7 +106,7 @@ export async function installChaincode(
         );
     }
     catch(err){
-        logger.error(`Installation failed with org '${orgName}', channel '${channelName}'.  Error: ${err.message}`);
+        logger.error(`Installation failed with org '${orgName}'.  Error: ${err.message}`);
     }
 }
 
