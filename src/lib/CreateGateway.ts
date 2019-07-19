@@ -28,7 +28,8 @@ const walletHelper = require(`../helpers/wallet`);
  * to the specified channels and smart contracts - removing the logic from the route
  * controllers.
  */
-class CreateGateway {
+export class CreateGateway {
+    gateway: any;
 
   constructor() {
     this.gateway = new Gateway();

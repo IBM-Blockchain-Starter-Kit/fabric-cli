@@ -42,7 +42,6 @@ export async function installChaincode(
         FabricClient.Proposal
     ];
 
-    console.log(process.env.HOME);
 
     const helper: FabricHelper = new FabricHelper(
         connectionProfilePath,
@@ -54,7 +53,6 @@ export async function installChaincode(
 
     try{
 
-    
         const gateway: Gateway = await helper.getGateway();
         if (!gateway) {
             throw `Gateway object for org '${orgName}' is undefined, null, or empty`

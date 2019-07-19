@@ -1,0 +1,51 @@
+{
+    "name": "channel",
+    "description": "Network on IBP v2",
+    "version": "1.0.0",
+    "client": {
+        "organization": "orgExample"
+    },
+    "organizations": {
+        "org1msp": {
+            "mspid": "org1msp",
+            "peers": [
+                "peerURL"
+            ],
+            "certificateAuthorities": [
+                "caURL"
+            ]
+        }
+    },
+    "orderers": {
+        "ordererURL": {
+            "url": "https://ordererURL",
+            "tlsCACerts": {
+                "pem": "certExample"
+            }
+        }
+    },
+    "peers": {
+        "peerURL": {
+            "url": "https://peerURL",
+            "tlsCACerts": {
+                "pem": "certExample2"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "testData"
+            }
+        }
+    },
+    "certificateAuthorities": {
+        "caURL": {
+            "url": "https://caURL",
+            "caName": "ca",
+            "tlsCACerts": {
+                "pem": "certExample2"
+            },
+            "registrar": {
+                "enrollId": "adminInfo",
+                "enrollSecret": "adminInfoPass"
+            }
+        }
+    }
+}

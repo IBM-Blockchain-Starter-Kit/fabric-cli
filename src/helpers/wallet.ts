@@ -25,7 +25,7 @@ logger.setLevel(config.logLevel);
 /**
  * Wallet object
  */
-const wallet = {};
+const wallet : any = {};
 const base64BufferEncoding = 'base64';
 
 /**
