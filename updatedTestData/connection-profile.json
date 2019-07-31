@@ -3,13 +3,13 @@
     "description": "Network on IBP v2",
     "version": "1.0.0",
     "client": {
-        "organization": "orgExample"
+        "organization": "org1msp"
     },
     "organizations": {
         "org1msp": {
             "mspid": "org1msp",
             "peers": [
-                "peerURL"
+                "grpcs://peerURL"
             ],
             "certificateAuthorities": [
                 "caURL"

@@ -11,7 +11,7 @@
     "scripts": {
         "build": "tsc",
         "build:watch": "tsc -w",
-        "test": "LOGGING_LEVEL=error jest",
+        "test": "NODE_ENV= jest",
         "test:watch": "LOGGING_LEVEL=error jest --watchAll",
         "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
     },

@@ -1,16 +1,18 @@
 import * as FabricClient from 'fabric-client';
 import FabricHelper from './FabricHelper';
+import { Gateway } from 'fabric-network';
+import { CreateGateway } from './CreateGateway';
 
-const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
-let exampleNetworkConfig: any = require(PATH_TO_EXAMPLE_NETWORK_CONFIG);
-exampleNetworkConfig = exampleNetworkConfig['network-config'];
+const EXAMPLE_CONNECTION_PROFILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/connection-profile.json';
+let exampleConnectionProfile: any = require(EXAMPLE_CONNECTION_PROFILE_PATH);
+exampleConnectionProfile = exampleConnectionProfile['conn-profile'];
 
-const EXAMPLE_ORGS = ['org1', 'org2', 'org3'];
+const EXAMPLE_ORGS = ['org1msp', 'org2msp', 'org3msp'];
 const EXAMPLE_UNKNOWN_ORG = 'orgUnknown';
 const EXAMPLE_CHANNEL_NAME = 'examplechannel';
-const EXAMPLE_KEY_VALUE_STORE_BASE_PATH = `${__dirname}/../../testData`;
-const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}/..`;
-const EXAMPLE_ORG_MSP = 'exampleOrgMSP';
+const EXAMPLE_KEY_VALUE_STORE_BASE_PATH = `${__dirname}/../../updatedTestData`;
+const EXAMPLE_CREDENTIAL_FILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/admin-identity-file.json';
+const EXAMPLE_ORG_MSP = 'org1msp';
 
 const examplePeer1 = new FabricClient.Peer('grpc://peer1.example.com', {
     name: 'peer1'
@@ -60,17 +62,22 @@ let expectedError: Error;
 describe(`FabricHelper Static Functions`, () => {
     describe(`getPeerNamesAsStringForChannel`, () => {
         it('should return a comma delimited string of peers on a channel', () => {
+            let examplePeerArr = [examplePeer1, examplePeer2]
             client = new FabricClient();
-            exampleChannel = client.newChannel(EXAMPLE_CHANNEL_NAME);
+            (client.getPeersForOrg as any) = jest.fn(()  =>  {
+                return examplePeerArr;
+            });
 
-            exampleChannel.addPeer(examplePeer1, EXAMPLE_ORG_MSP);
-            exampleChannel.addPeer(examplePeer2, EXAMPLE_ORG_MSP);
+            const installTargetPeers = examplePeerArr;
 
-            const result = FabricHelper.getPeerNamesAsStringForChannel(
-                exampleChannel
+    
+            const result = FabricHelper.getPeerNamesAsString(
+                installTargetPeers
             );
 
-            expect(result).toBe('peer1,peer2');
+            let peerNames = ['peer1', 'peer2']
+
+            expect(result).toStrictEqual(peerNames);
         });
     });
     describe(`registerAndConnectTxEventHub`, () => {
@@ -225,110 +232,104 @@ describe(`FabricHelper Static Functions`, () => {
 describe(`FabricHelper`, () => {
     beforeAll(() => {
         fabricHelper = new FabricHelper(
-            PATH_TO_EXAMPLE_NETWORK_CONFIG,
+            EXAMPLE_CONNECTION_PROFILE_PATH,
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_KEY_VALUE_STORE_BASE_PATH,
-            EXAMPLE_CRYPTO_DIR_PATH
+            EXAMPLE_ORG_MSP,
+            EXAMPLE_CREDENTIAL_FILE_PATH
         );
     });
 
     describe(`Constructor`, () => {
-        describe(`Client setup`, () => {
-            it(`should create a client for each org given`, () => {
-                expect(
-                    fabricHelper.getClientForOrg(EXAMPLE_ORGS[0])
-                ).toBeInstanceOf(FabricClient);
+        // describe(`Client setup`, () => {
+        //     it(`should create a client for each org given`, () => {
+        //         expect(
+        //             fabricHelper.getClientForOrg(EXAMPLE_ORGS[0])
+        //         ).toBeInstanceOf(FabricClient);
 
-                expect(
-                    fabricHelper.getClientForOrg(EXAMPLE_ORGS[1])
-                ).toBeInstanceOf(FabricClient);
+        //         expect(
+        //             fabricHelper.getClientForOrg(EXAMPLE_ORGS[1])
+        //         ).toBeInstanceOf(FabricClient);
 
-                expect(
-                    fabricHelper.getClientForOrg(EXAMPLE_ORGS[2])
-                ).toBeInstanceOf(FabricClient);
-            });
+        //         expect(
+        //             fabricHelper.getClientForOrg(EXAMPLE_ORGS[2])
+        //         ).toBeInstanceOf(FabricClient);
+        //     });
 
-            it(`should not create a client for an orderer org`, () => {
-                expect(
-                    fabricHelper.getClientForOrg('orderer')
-                ).not.toBeDefined();
-            });
+        //     it(`should not create a client for an orderer org`, () => {
+        //         expect(
+        //             fabricHelper.getClientForOrg('orderer')
+        //         ).not.toBeDefined();
+        //     });
+        // });
+
+//         describe(`Channel setup`, () => {
+//             it('should create a channel for each org', () => {
+//                 expect(
+//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[0])
+//                 ).toBeInstanceOf(FabricClient.Channel);
+//                 expect(
+//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[0]).getName()
+//                 ).toBe(EXAMPLE_CHANNEL_NAME);
+
+//                 expect(
+//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[1])
+//                 ).toBeInstanceOf(FabricClient.Channel);
+//                 expect(
+//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[1]).getName()
+//                 ).toBe(EXAMPLE_CHANNEL_NAME);
+
+//                 expect(
+//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[2])
+//                 ).toBeInstanceOf(FabricClient.Channel);
+//                 expect(
+//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[2]).getName()
+//                 ).toBe(EXAMPLE_CHANNEL_NAME);
+//             });
         });
-
-        describe(`Channel setup`, () => {
-            it('should create a channel for each org', () => {
-                expect(
-                    fabricHelper.getChannelForOrg(EXAMPLE_ORGS[0])
-                ).toBeInstanceOf(FabricClient.Channel);
-                expect(
-                    fabricHelper.getChannelForOrg(EXAMPLE_ORGS[0]).getName()
-                ).toBe(EXAMPLE_CHANNEL_NAME);
-
-                expect(
-                    fabricHelper.getChannelForOrg(EXAMPLE_ORGS[1])
-                ).toBeInstanceOf(FabricClient.Channel);
-                expect(
-                    fabricHelper.getChannelForOrg(EXAMPLE_ORGS[1]).getName()
-                ).toBe(EXAMPLE_CHANNEL_NAME);
-
-                expect(
-                    fabricHelper.getChannelForOrg(EXAMPLE_ORGS[2])
-                ).toBeInstanceOf(FabricClient.Channel);
-                expect(
-                    fabricHelper.getChannelForOrg(EXAMPLE_ORGS[2]).getName()
-                ).toBe(EXAMPLE_CHANNEL_NAME);
-            });
-        });
-    });
 
     describe(`Methods`, () => {
-        describe(`getClientForOrg`, () => {
-            it(`should return a client for a known org`, () => {
-                const fabricClient = fabricHelper.getClientForOrg(
-                    EXAMPLE_ORGS[0]
-                );
 
-                expect(fabricClient).toBeInstanceOf(FabricClient);
-            });
-
-            it(`should return undefined for an unknown org`, () => {
-                const fabricClient = fabricHelper.getClientForOrg(
-                    EXAMPLE_UNKNOWN_ORG
-                );
-
-                expect(fabricClient).not.toBeDefined();
-            });
-        });
-
-        describe(`getChannelForOrg`, () => {
-            it(`should return a channel for a known org`, () => {
-                const channel = fabricHelper.getChannelForOrg(EXAMPLE_ORGS[0]);
-
-                expect(channel).toBeInstanceOf(FabricClient.Channel);
-            });
-
-            it(`should return undefined for an unknown org`, () => {
-                const channel = fabricHelper.getChannelForOrg(
-                    EXAMPLE_UNKNOWN_ORG
-                );
-
-                expect(channel).not.toBeDefined();
+        describe(`getGateway`, () => {
+            // stub gateway object from gateway class
+            let emptyGatewayObj = new Gateway();
+            it('should return a valid gateway object if setupGateway returns a valid gateway object', async () => {
+                (CreateGateway.prototype.setupGateway as any) = jest.fn(()  =>  {
+                    return emptyGatewayObj;
+                });
+                const testGetGateway = await fabricHelper.getGateway();
+                expect(testGetGateway).toMatchObject(emptyGatewayObj);
             });
         });
 
         describe(`getOrgAdmin`, () => {
+            let emptyGatewayObj = new Gateway();
+            let clientObj = FabricClient.loadFromConfig(EXAMPLE_CONNECTION_PROFILE_PATH);
+            let emptyUserObj = new FabricClient.User(null);
+            
+            beforeEach(async () => {
+                (CreateGateway.prototype.setupGateway as any) = jest.fn(()  =>  {
+                    return emptyGatewayObj;
+                });
+                let gatewayObj = await fabricHelper.getGateway();
+                (gatewayObj.getClient as any) = jest.fn(()  =>  {
+                    return clientObj;
+                });
+                // (clientObj.createUser as any) = jest.fn(()  =>  {
+                //     return ;
+                // });
+            })
             it('should return an admin user if one exists for a known org', async () => {
-                const admin = await fabricHelper.getOrgAdmin(EXAMPLE_ORGS[0]);
-
+                const admin = await fabricHelper.getOrgAdmin(EXAMPLE_ORGS[0], EXAMPLE_CREDENTIAL_FILE_PATH);
                 expect(admin).toBeInstanceOf(FabricClient.User);
                 expect(admin.getName()).toBe(`peer${EXAMPLE_ORGS[0]}Admin`);
                 expect(admin.getIdentity().getMSPId()).toBe(
-                    `${exampleNetworkConfig[EXAMPLE_ORGS[0]].mspid}`
+                    `${exampleConnectionProfile[EXAMPLE_ORGS[0]].mspid}`
                 );
             });
             it('should throw an error when retrieving an admin for an unknown org', async () => {
                 await expect(
-                    fabricHelper.getOrgAdmin(EXAMPLE_UNKNOWN_ORG)
+                    fabricHelper.getOrgAdmin(EXAMPLE_UNKNOWN_ORG, EXAMPLE_CREDENTIAL_FILE_PATH)
                 ).rejects.toThrow(
                     new Error(`Unknown Org: ${EXAMPLE_UNKNOWN_ORG}`)
                 );

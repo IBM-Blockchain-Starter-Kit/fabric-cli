@@ -105,6 +105,7 @@ export async function installChaincode(
     }
     catch(err){
         logger.error(`Installation failed with org '${orgName}'.  Error: ${err.message}`);
+        throw new Error(err)
     }
 }
 
@@ -125,7 +126,7 @@ async function installChaincodeOnPeersInRequest(
         );
         proposalResponses = await client.installChaincode(request);
     } catch (err) {
-        const errMessage = `Failed to send install proposal due to error: ${err}`
+        const errMessage = `Failed to send install proposal due to ${err}`
         logger.error(errMessage);
         throw new Error(errMessage);
     }

@@ -12,6 +12,8 @@ limitations under the License.
 */
 
 import { instantiateChaincode } from '../../lib/instantiate-chaincode';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export const command: string = 'instantiate';
 export const desc: string = 'Instantiate chaincode';
@@ -97,6 +99,29 @@ export function builder(yargs) {
                     'Invalid --endorsement-policy argument. It was not a valid JSON.'
                 );
             }
+        })
+        .check(function(argv) {
+            if (!argv['cc-type'] || argv['cc-type'] === 'golang') {
+                if (!process.env.GOPATH) {
+                    throw new Error(
+                        'GOPATH environment is not set. Environment setting required to deploy chaincode'
+                    );
+                }
+                let absolutePathChaincode = path.join(
+                    process.env.GOPATH,
+                    'src',
+                    argv['src-dir']
+                );
+
+                if (!fs.existsSync(absolutePathChaincode)) {
+                    throw new Error(
+                        'Could not find absolute path for chaincode based on GOPATH variable and --src-dir argument.  Absolute path built: ' +
+                            absolutePathChaincode
+                    );
+                }
+            }
+
+            return true;
         });
 }
 
