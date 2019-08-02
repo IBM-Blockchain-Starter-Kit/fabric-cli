@@ -18,6 +18,7 @@ import { installChaincode } from '../../lib/install-chaincode';
 export const command: string = 'install';
 export const desc: string = 'Install chaincode';
 
+
 export function builder(yargs) {
     return yargs
         .option('cc-name', {
@@ -36,7 +37,7 @@ export function builder(yargs) {
         .option('cc-type', {
             demandOption: false,
             describe:
-                'The langauge in which your chaincode is written, default=golang.',
+                'The language in which your chaincode is written, default=golang.',
             choices: ['golang', 'java', 'node'],
             type: 'string'
         })
@@ -47,9 +48,15 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
-        .option('channel', {
+        // .option('channel', {
+        //     demandOption: false,
+        //     describe: 'Name of the channel to install chaincode',
+        //     type: 'string'
+        // })
+        .option('admin-identity', {
             demandOption: true,
-            describe: 'Name of the channel to install chaincode',
+            describe:
+                'Absolute path to where the user credentials are located',
             requiresArg: true,
             type: 'string'
         })
@@ -76,6 +83,7 @@ export function builder(yargs) {
 
             return true;
         });
+        
 }
 
 export async function handler(argv): Promise<void> {
@@ -90,13 +98,13 @@ export async function handler(argv): Promise<void> {
 
     console.log('Installing chaincode');
     return await installChaincode(
-        argv['net-config'],
+        argv['conn-profile'],
         argv['channel'],
         argv['cc-name'],
         argv['src-dir'],
         argv['cc-version'],
         argv['org'],
-        argv['crypto-dir'],
-        argv['cc-type']
+        argv['cc-type'],
+        argv['admin-identity']
     );
 }
