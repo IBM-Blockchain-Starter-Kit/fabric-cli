@@ -18,10 +18,12 @@ import * as CaClient from 'fabric-ca-client';
 import * as FabricClient from 'fabric-client';
 import * as fs from 'fs-extra';
 import * as log4js from 'log4js';
-import * as path from 'path';
 import { inspect } from 'util';
+import { CreateGateway } from './CreateGateway';
+import { Gateway } from 'fabric-network';
+const walletHelper = require(`../helpers/wallet`);
 
-const logger = log4js.getLogger('FabricHelper');
+const logger = log4js.getLogger('FabricHelper')
 
 const LOGGING_LEVEL = process.env.LOGGING_LEVEL
     ? process.env.LOGGING_LEVEL
@@ -53,16 +55,16 @@ export default class FabricHelper {
         if (errorsFound.length > 0) {
             logger.error(
                 `Failed to send proposal or receive valid response: ${
-                    errorsFound[0].message
+                errorsFound[0].message
                 }`
             );
             throw new Error(
                 `Failed to send proposal or receive valid response: ${
-                    errorsFound[0].message
+                errorsFound[0].message
                 }`
             );
         }
-
+        //gitchange
         // For TS, need to cast all elements to ProposalResponses. We know all are at this point.
         const proposalResponses = responses as FabricClient.ProposalResponse[];
 
@@ -90,13 +92,13 @@ export default class FabricHelper {
         if (response.status !== 'SUCCESS') {
             logger.error(
                 `sendTransaction returned with an invalid status code: ${
-                    response.status
+                response.status
                 }: ${response.info}`
             );
 
             throw new Error(
                 `sendTransaction returned with an invalid status code: ${
-                    response.status
+                response.status
                 }: ${response.info}`
             );
         } else {
@@ -106,15 +108,14 @@ export default class FabricHelper {
         }
     }
 
-    public static getPeerNamesAsStringForChannel(
-        channel: FabricClient.Channel
-    ): string {
-        const peerNames: string[] = [];
-        for (const peer of channel.getPeers()) {
-            peerNames.push(peer.getName());
-        }
+    //Kept for logging,
 
-        return peerNames.join(',');
+    public static getPeerNamesAsString(arrayOfPeers: FabricClient.Peer[]){
+        let peerNames = [];
+        arrayOfPeers.forEach(function(peer) {
+            peerNames.push(peer.getName());
+        })
+        return peerNames
     }
 
     public static registerAndConnectTxEventHub(
@@ -124,7 +125,7 @@ export default class FabricHelper {
         const peerName = channel.getPeers()[0].getName();
         const eventHub = channel.newChannelEventHub(peerName);
 
-        return new Promise(function(resolve, reject) {
+        return new Promise(function (resolve, reject) {
             eventHub.registerTxEvent(
                 deployTxId,
                 (txId, code) => {
@@ -191,112 +192,137 @@ export default class FabricHelper {
 
         return proposalResponses;
     }
-    private clients: object;
-    private channels: object;
-    private ORGS: any;
     private caClients: any;
-
-    private channel: string;
     private keyValueStoreBasePath: string;
-    private cryptoDirPath: string;
+    private orgName;
+    private connectionProfile;
+    private gateway: Gateway;
+    private objCreateGateway = new CreateGateway();
+    private connectionProfilePath;
+    private credentialFilePath;
+    private enrollId;
+    private enrollSecret;
+
+
 
     constructor(
-        networkConfigFilePath: string,
+        connectionProfilePath: string,
         channelName: string,
         keyValueStoreBasePath: string,
-        cryptoDirPath: string
+        orgName: string,
+        credentialFilePath: string
     ) {
-        FabricClient.addConfigFile(networkConfigFilePath);
-        this.ORGS = FabricClient.getConfigSetting('network-config');
-        this.clients = {};
-        this.channels = {};
+        this.orgName = orgName;
+        this.credentialFilePath = credentialFilePath;
+        this.connectionProfilePath = connectionProfilePath;
         this.caClients = {};
-        this.channel = channelName;
         this.keyValueStoreBasePath = keyValueStoreBasePath;
-        this.cryptoDirPath = cryptoDirPath;
+        this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
+        this.enrollId;
+        this.enrollSecret;
 
-        // set up the client and channel objects for each org
-        for (const org in this.ORGS) {
-            if (org.indexOf('org') === 0) {
-                const client = new FabricClient();
 
-                const cryptoSuite = FabricClient.newCryptoSuite();
-                cryptoSuite.setCryptoKeyStore(
-                    FabricClient.newCryptoKeyStore({
-                        path: this.getKeyStoreForOrg(this.ORGS[org].name)
-                    })
-                );
-                client.setCryptoSuite(cryptoSuite);
-
-                const channel = client.newChannel(this.channel);
-                channel.addOrderer(this.newOrderer(client));
-
-                this.clients[org] = client;
-                this.channels[org] = channel;
-
-                this.setupPeers(channel, org, client);
-
-                const caUrl = this.ORGS[org].ca.url;
-                const caName = this.ORGS[org].ca.name;
-
-                logger.info('The Org for this CA is: ' + org);
-                logger.info('The CA Name is: ' + caName);
-                logger.info('The CA UrL is: ' + caUrl);
-                this.caClients[org] = new CaClient(
-                    caUrl,
-                    null /*defautl TLS opts*/,
-                    caName,
-                    cryptoSuite
-                );
-            }
-        }
-    }
-
-    // APIs
-    public getChannelForOrg(org: string): FabricClient.Channel {
-        return this.channels[org];
-    }
-
-    public getClientForOrg(org: string): FabricClient {
-        return this.clients[org];
-    }
-
-    public async getOrgAdmin(org: string): Promise<FabricClient.User> {
-        if (!this.ORGS[org]) { throw new Error(`Unknown Org: ${org}`); }
-
-        logger.debug(`Getting org admin for user org: ${org}`);
-        const admin = this.ORGS[org].admin;
-
-        const keyPath = path.join(this.cryptoDirPath, admin.key);
-        logger.debug(`Org admin keyPath: ${keyPath}`);
-        const keyPEM = Buffer.from(this.readAllFiles(keyPath)[0]).toString();
-
-        const certPath = path.join(this.cryptoDirPath, admin.cert);
-        logger.debug(`The certPath: ${certPath}`);
-        const certPEM = this.readAllFiles(certPath)[0].toString();
-
-        const client = this.getClientForOrg(org);
+        // Set up the client object
+        const client = new FabricClient();
         const cryptoSuite = FabricClient.newCryptoSuite();
-
         cryptoSuite.setCryptoKeyStore(
             FabricClient.newCryptoKeyStore({
-                path: this.getKeyStoreForOrg(this.getOrgName(org))
+                path: this.keyValueStoreBasePath + '_' + orgName
             })
         );
         client.setCryptoSuite(cryptoSuite);
 
-        const store = await FabricClient.newDefaultKeyValueStore({
-            path: this.getKeyStoreForOrg(this.getOrgName(org))
+        // Get the appropriate CA for the specified org
+        const caFromOrg = this.connectionProfile.organizations[orgName].certificateAuthorities;
+        const connProfCa = this.connectionProfile.certificateAuthorities;
+        const self = this;
+        caFromOrg.forEach(function (orgCa) {
+            Object.keys(connProfCa).forEach(function (currentCa) {
+                if (currentCa == orgCa) {
+                    const caName = currentCa;
+                    const caUrl = connProfCa[currentCa].url;
+                    logger.info('The Org for this CA is: ' + orgName);
+                    logger.info('The CA Name is: ' + caName);
+                    logger.info('The CA UrL is: ' + caUrl);
+                    self.caClients[orgName] = new CaClient(
+                        caUrl,
+                        null /*defautl TLS opts*/,
+                        caName,
+                        cryptoSuite
+                    );
+                }
+            })
         });
 
-        client.setStateStore(store);
+        //Obtain enrollId and enrollSecret from connection profile
+        try {
+            this.enrollId = this.connectionProfile.certificateAuthorities[caFromOrg].registrar.enrollId;
+            this.enrollSecret = this.connectionProfile.certificateAuthorities[caFromOrg].registrar.enrollSecret;
+        }
+        catch (error) {
+            logger.error(`Could not find credentials in connection profile. ${error}`)
+        }
+
+    }
+
+    // APIs
+
+    /**
+     * 
+     * Set Gateway connection
+     * @returns {Gateway} - Gateway object 
+     */
+    public async getGateway() {
+        logger.debug('entering >>> setupGateway()');
+        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, this.enrollId, this.enrollSecret, this.credentialFilePath)
+        logger.debug('exiting <<< setupGateway()');
+        return this.gateway;
+    }
+
+    /**
+     * 
+     * @param org 
+     * @param credentialsFilePath 
+     * @returns {FabricClient.User} - Returns a user with Admin identity
+     */
+    public async getOrgAdmin(org: string, credentialsFilePath: string): Promise<FabricClient.User> {
+        if(!(org in this.connectionProfile.organizations)){
+            throw new Error(`Unknown Org: ${org}`); 
+        }
+        if (!fs.existsSync(credentialsFilePath)) {
+            throw new Error(
+                'Failed to find the credentails file for IBPv2 in the current path'
+            );
+        }
+        const privateKey = walletHelper.getPrivateKey(credentialsFilePath);
+        const publicCert = walletHelper.getPublicCert(credentialsFilePath);
+
+        if (privateKey == null || privateKey.length == 0 || typeof privateKey != "string") {
+            throw new Error(
+                'Error: private key is invalid'
+            );
+        }
+
+        if (publicCert == null || publicCert.length == 0 || typeof privateKey != "string") {
+            throw new Error(
+                'Error: public certificate is invalid'
+            );
+        }
+
+
+        logger.debug(`Getting org admin for user org: ${org}`);
+
+        const keyPEM = Buffer.from(privateKey).toString()
+        const certPEM = publicCert.toString()
+
+        const client = this.gateway.getClient();
 
         logger.debug(`keyPEM: ${inspect(keyPEM)}`);
         logger.debug(`certPEM: ${inspect(certPEM)}`);
 
         return await client.createUser({
-            username: 'peer' + org + 'Admin',
-            mspid: this.getMspID(org),
+            username: `peer${org}Admin`,
+            mspid: org,
             cryptoContent: {
                 privateKeyPEM: keyPEM,
                 signedCertPEM: certPEM
@@ -305,105 +331,103 @@ export default class FabricHelper {
         });
     }
 
-    private getKeyStoreForOrg(org: string): string {
-        return this.keyValueStoreBasePath + '_' + org;
-    }
+    // private getKeyStoreForOrg(org: string): string {            
+    //     return this.keyValueStoreBasePath + '_' + org;
+    // }
 
-    private newOrderer(client: FabricClient): FabricClient.Orderer {
-        const serverName: string = this.ORGS.orderer['server-hostname'];
-        let opts: FabricClient.ConnectionOpts = {};
-        if (this.ORGS.orderer.url.includes('grpcs')) {
-            logger.debug(
-                `grcps protocol detected for orderer in ${serverName}`
-            );
-            if (!this.ORGS.orderer.tls_cacerts) {
-                logger.error(
-                    `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
-                );
-                throw new Error(
-                    `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
-                );
-            }
-            const caRootsPath = this.ORGS.orderer.tls_cacerts;
-            const data = fs.readFileSync(
-                path.join(this.cryptoDirPath, caRootsPath)
-            );
-            const caroots = Buffer.from(data).toString();
-            opts = {
-                pem: caroots
-            };
-        }
+    // private newOrderer(client: FabricClient): FabricClient.Orderer {
+    //     let serverNameObject;
+    //     let url: string = "";
+    //     let tlsCertPEMOrderer = "";
+    //     let tlsCertOrderer = "";
 
-        return client.newOrderer(this.ORGS.orderer.url, opts);
-    }
-    private setupPeers(
-        channel: FabricClient.Channel,
-        org: string,
-        client: FabricClient
-    ) {
-        const orgMspId: string = this.ORGS[org].mspid;
+    //     const connectionProfileOrderersArray = Object.keys(this.connectionProfile.orderers ).map(i => this.connectionProfile.orderers [i])
+    //     connectionProfileOrderersArray.forEach(function(currentOrderer){
+    //         tlsCertOrderer = currentOrderer.tlsCACerts
+    //         tlsCertPEMOrderer = currentOrderer.tlsCACerts.pem;
+    //         url = currentOrderer.url;
+    //     });
 
-        for (const key in this.ORGS[org].peers) {
-            let opts: FabricClient.ConnectionOpts = {};
-            if (this.ORGS[org].peers[key].requests.includes('grpcs')) {
-                logger.debug(`grcps protocol detected for peers in ${org}`);
-                if (!this.ORGS[org].peers[key].tls_cacerts) {
-                    logger.error(
-                        `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
-                    );
-                    throw new Error(
-                        `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
-                    );
-                }
+    //     let opts: FabricClient.ConnectionOpts = {};
+    //     if (url.includes('grpcs')) {
+    //         logger.debug(
+    //             `grcps protocol detected for orderer in ${serverNameObject}`
+    //         );
+    //         if (!tlsCertOrderer) {
+    //             logger.error(
+    //                 `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
+    //             );
+    //             throw new Error(
+    //                 `grpcs protocol detected for orderer (serverName), tls_cacerts required but none found in network config`
+    //             );
+    //         }
 
-                const data = fs.readFileSync(
-                    path.join(
-                        this.cryptoDirPath,
-                        this.ORGS[org].peers[key].tls_cacerts
-                    )
-                );
+    //         const caroots = Buffer.from(tlsCertPEMOrderer).toString();
+    //         opts = {
+    //             pem: caroots
+    //         };
+    //     }
 
-                logger.debug('\nData from file:');
-                logger.debug(Buffer.from(data).toString());
+    //     return client.newOrderer(url, opts);
+    // }
+    // private setupPeers(
+    //     channel: FabricClient.Channel,
+    //     org: string,
+    //     client: FabricClient
+    // ) {
+    //     const orgMspId: string = this.orgName;
+    //     const connectionProfile = this.connectionProfile;
+    //     const orgPeers = this.connectionProfile.organizations[org].peers;
 
-                opts = {
-                    pem: Buffer.from(data).toString()
-                };
-            }
+    //     orgPeers.forEach(function (currentPeer) {
+    //         const peerUrl = connectionProfile.peers[currentPeer].url;
+    //         const peerCert = connectionProfile.peers[currentPeer].tlsCACerts;
+    //         const tlsCertPEMPeer = peerCert.pem;
 
-            const peer = client.newPeer(
-                this.ORGS[org].peers[key].requests,
-                opts
-            );
-            peer.setName(key);
+    //         let opts: FabricClient.ConnectionOpts = {};
 
-            channel.addPeer(peer, orgMspId);
-        }
-    }
+    //         if (peerUrl.includes('grpcs')) {
+    //             logger.debug(`grcps protocol detected for peers in ${org}`);
+    //             if (!peerCert) {
+    //                 logger.error(
+    //                     `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
+    //                 );
+    //                 throw new Error(
+    //                     `grpcs protocol detected for peers in org ${org}, tls_cacerts required but none found in network config`
+    //                 );
+    //             }
 
-    private getOrgName(org: string): string {
-        logger.debug(`Org name : ${this.ORGS[org].name}`);
-        return this.ORGS[org].name;
-    }
+    //             logger.debug('\nData from file:');
+    //             logger.debug(Buffer.from(tlsCertPEMPeer).toString());
 
-    private getMspID(org: string): string {
-        logger.debug(`MSP ID : ${this.ORGS[org].mspid}`);
-        return this.ORGS[org].mspid;
-    }
+    //             opts = {
+    //                 pem: Buffer.from(tlsCertPEMPeer).toString()
+    //             };
+    //         }
 
-    private readAllFiles(dir: string): string[] {
-        let files: any = fs.readdirSync(dir);
-        // We should remove hidden files to avoid nasty surprises
-        // For instance, macOS may add the infamous .DS_Store file
-        files = files.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item));
-        const certs = [];
-        files.forEach((file_name) => {
-            const file_path = path.join(dir, file_name);
-            const data = fs.readFileSync(file_path);
-            certs.push(data);
-        });
-        return certs;
-    }
+    //         const peer = client.newPeer(
+    //             peerUrl,
+    //             opts
+    //         );
+    //         peer.setName(currentPeer);
+
+    //         channel.addPeer(peer, orgMspId);
+    //     });
+    // }
+
+    // private readAllFiles(dir: string): string[] {
+    //     let files: any = fs.readdirSync(dir);
+    //     // We should remove hidden files to avoid nasty surprises
+    //     // For instance, macOS may add the infamous .DS_Store file
+    //     files = files.filter((item) => !/(^|\/)\.[^\/\.]/g.test(item));
+    //     const certs = [];
+    //     files.forEach((file_name) => {
+    //         const file_path = path.join(dir, file_name);
+    //         const data = fs.readFileSync(file_path);
+    //         certs.push(data);
+    //     });
+    //     return certs;
+    // }
 }
 
 // Not implemented yet

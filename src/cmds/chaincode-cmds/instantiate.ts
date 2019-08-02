@@ -12,6 +12,8 @@ limitations under the License.
 */
 
 import { instantiateChaincode } from '../../lib/instantiate-chaincode';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export const command: string = 'instantiate';
 export const desc: string = 'Instantiate chaincode';
@@ -73,6 +75,13 @@ export function builder(yargs) {
             type: 'string',
             default: null
         })
+        .option('admin-identity', {
+            demandOption: true,
+            describe:
+                'Absolute path to where the user credentials are located',
+            requiresArg: true,
+            type: 'string'
+        })
         .check(function(argv) {
             //validate endorsement policy (i.e. validate it is JSON)
             var endorsementPolicy = argv['endorsement-policy'];
@@ -90,13 +99,36 @@ export function builder(yargs) {
                     'Invalid --endorsement-policy argument. It was not a valid JSON.'
                 );
             }
+        })
+        .check(function(argv) {
+            if (!argv['cc-type'] || argv['cc-type'] === 'golang') {
+                if (!process.env.GOPATH) {
+                    throw new Error(
+                        'GOPATH environment is not set. Environment setting required to deploy chaincode'
+                    );
+                }
+                let absolutePathChaincode = path.join(
+                    process.env.GOPATH,
+                    'src',
+                    argv['src-dir']
+                );
+
+                if (!fs.existsSync(absolutePathChaincode)) {
+                    throw new Error(
+                        'Could not find absolute path for chaincode based on GOPATH variable and --src-dir argument.  Absolute path built: ' +
+                            absolutePathChaincode
+                    );
+                }
+            }
+
+            return true;
         });
 }
 
 export async function handler(argv) {
     console.log('Instantiating chaincode');
     return await instantiateChaincode(
-        argv['net-config'],
+        argv['conn-profile'],
         argv['channel'],
         argv['cc-name'],
         argv['cc-version'],
@@ -105,7 +137,7 @@ export async function handler(argv) {
         argv['org'],
         argv['timeout'],
         argv['endorsement-policy'],
-        argv['crypto-dir'],
-        argv['cc-type']
+        argv['cc-type'],
+        argv['admin-identity']
     );
 }

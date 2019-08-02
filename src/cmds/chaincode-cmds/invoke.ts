@@ -59,13 +59,20 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'number',
             default: 120000
+        })
+        .option('admin-identity', {
+            demandOption: true,
+            describe:
+                'Absolute path to where the user credentials are located',
+            requiresArg: true,
+            type: 'string'
         });
 }
 
 export async function handler(argv) {
     console.log('Invoking transaction in chaincode');
     await invokeChaincode(
-        argv['net-config'],
+        argv['conn-profile'],
         argv['channel'],
         argv['cc-name'],
         argv['invoke-fn'],
@@ -73,6 +80,6 @@ export async function handler(argv) {
         argv['org'],
         argv['query'],
         argv['timeout'],
-        argv['crypto-dir']
+        argv['admin-identity']
     );
 }

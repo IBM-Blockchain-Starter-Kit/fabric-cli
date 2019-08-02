@@ -18,6 +18,7 @@ import * as FabricClient from 'fabric-client';
 import * as path from 'path';
 import { inspect } from 'util';
 import FabricHelper from './FabricHelper';
+import { Gateway, Network } from 'fabric-network';
 const logger = FabricHelper.getLogger('invoke-chaincode');
 
 interface ResponseObject {
@@ -27,15 +28,15 @@ interface ResponseObject {
 }
 
 export async function invokeChaincode(
-    networkConfigFilePath: string,
+    connectionProfilePath: string,
     channelName: string,
     chaincodeName: string,
     functionName: string,
     args: string[],
-    org: string,
+    orgName: string,
     queryOnly: boolean,
     timeout: number,
-    cryptoDir: string
+    credentialFilePath: string
 ): Promise<ResponseObject> {
     logger.debug(
         `Invoking method (${functionName}) on chaincode (${chaincodeName}) with arguments (${args})`
@@ -44,68 +45,99 @@ export async function invokeChaincode(
     let response: ResponseObject;
     let proposalResponses: FabricClient.ProposalResponseObject;
     const fabricHelper = new FabricHelper(
-        networkConfigFilePath,
+        connectionProfilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-        cryptoDir
-    );
-    const channel = fabricHelper.getChannelForOrg(org);
-    const client = fabricHelper.getClientForOrg(org);
-    let tx_id: FabricClient.TransactionId = null;
-
-    await fabricHelper.getOrgAdmin(org);
-
-    await channel.initialize();
-
-    tx_id = client.newTransactionID();
-
-    const request: FabricClient.ChaincodeInvokeRequest = {
-        chaincodeId: chaincodeName,
-        args,
-        txId: tx_id
-    };
-
-    if (functionName) {
-        request.fcn = functionName;
-    }
-
-    logger.debug(
-        `Sending transaction proposal with the following request: ${inspect(
-            request
-        )}`
+        orgName,
+        credentialFilePath
     );
 
-    try {
-        proposalResponses = await channel.sendTransactionProposal(
-            request,
-            timeout
+    try{
+
+        let gateway: Gateway = await fabricHelper.getGateway();
+        if (!gateway) {
+            throw `Gateway object for org '${orgName}' is undefined, null, or empty`
+        }
+
+        let network: Network = await gateway.getNetwork(channelName);
+        if (!network) {
+            throw `Network object for org '${orgName}' and channel '${channelName} 'is undefined, null, or empty`
+        }
+
+        const client: FabricClient = gateway.getClient();
+        if (!client) {
+            throw `Client object for org '${orgName}' is undefined, null, or empty`
+        }
+        const channel: FabricClient.Channel = network.getChannel();
+        if (!channel) {
+            throw `Channel object for org '${orgName}' is undefined, null, or empty`
+        }
+        const user: FabricClient.User = await fabricHelper.getOrgAdmin(orgName, credentialFilePath);
+        if (!user) {
+            throw `User object for org '${orgName}' is undefined, null, or empty`
+        }
+
+        logger.debug(`Successfully retrieved admin user: ${user}`);
+
+        let tx_id: FabricClient.TransactionId = null;
+
+        await channel.initialize();
+
+        tx_id = client.newTransactionID();
+
+        const request: FabricClient.ChaincodeInvokeRequest = {
+            chaincodeId: chaincodeName,
+            args,
+            txId: tx_id
+        };
+
+        if (functionName) {
+            request.fcn = functionName;
+        }
+
+        logger.debug(
+            `Sending transaction proposal with the following request: ${inspect(
+                request
+            )}`
         );
-    } catch (err) {
-        logger.debug(`Failed to send transaction Proposal: ${err}`);
-        throw err;
+
+        try {
+            proposalResponses = await channel.sendTransactionProposal(
+                request,
+                timeout
+            );
+        } catch (err) {
+            logger.debug(`Failed to send transaction Proposal: ${err}`);
+            throw err;
+        }
+
+        FabricHelper.inspectProposalResponses(proposalResponses);
+
+        if (!queryOnly) {
+            logger.info('Sending transaction to orderer...');
+
+            await sendChaincodeInvokeProposal(
+                channel,
+                tx_id.getTransactionID(),
+                proposalResponses as [
+                    FabricClient.ProposalResponse[],
+                    FabricClient.Proposal
+                ],
+                timeout
+            );
+        }
+
+        response = getResponseFromProposalResponseObject(proposalResponses);
+
+        logger.info('Successfully sent transaction to the orderer');
+        logger.info(`Transaction response:\n ${inspect(response)}`);
+        return response;
+
     }
-
-    FabricHelper.inspectProposalResponses(proposalResponses);
-
-    if (!queryOnly) {
-        logger.info('Sending transaction to orderer...');
-
-        await sendChaincodeInvokeProposal(
-            channel,
-            tx_id.getTransactionID(),
-            proposalResponses as [
-                FabricClient.ProposalResponse[],
-                FabricClient.Proposal
-            ],
-            timeout
-        );
+    catch(err){
+        logger.error(`Invocation failed with org '${orgName}', channel '${channelName}'.  Error: ${err.message}`);
+        throw (err);
     }
-
-    response = getResponseFromProposalResponseObject(proposalResponses);
-
-    logger.info('Successfully sent transaction to the orderer');
-    logger.info(`Transaction response:\n ${inspect(response)}`);
-    return response;
 }
 
 function getResponseFromProposalResponseObject(
