@@ -1,17 +1,16 @@
 import * as FabricClient from 'fabric-client';
-import FabricHelper from './FabricHelper';
+import FabricHelper from '../src/lib/FabricHelper';
 import { Gateway } from 'fabric-network';
-import { CreateGateway } from './CreateGateway';
+import { CreateGateway } from '../src/lib/CreateGateway';
 
-const EXAMPLE_CONNECTION_PROFILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/connection-profile.json';
+const EXAMPLE_CONNECTION_PROFILE_PATH = `${__dirname}/../updatedTestData/connection-profile.json`;
 let exampleConnectionProfile: any = require(EXAMPLE_CONNECTION_PROFILE_PATH);
-exampleConnectionProfile = exampleConnectionProfile['conn-profile'];
 
 const EXAMPLE_ORGS = ['org1msp', 'org2msp', 'org3msp'];
 const EXAMPLE_UNKNOWN_ORG = 'orgUnknown';
 const EXAMPLE_CHANNEL_NAME = 'examplechannel';
-const EXAMPLE_KEY_VALUE_STORE_BASE_PATH = `${__dirname}/../../updatedTestData`;
-const EXAMPLE_CREDENTIAL_FILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/admin-identity-file.json';
+const EXAMPLE_KEY_VALUE_STORE_BASE_PATH = `${__dirname}/../updatedTestData`;
+const EXAMPLE_CREDENTIAL_FILE_PATH = `${__dirname}/../updatedTestData/admin-identity-file.json`;
 const EXAMPLE_ORG_MSP = 'org1msp';
 
 const examplePeer1 = new FabricClient.Peer('grpc://peer1.example.com', {
@@ -290,41 +289,38 @@ describe(`FabricHelper`, () => {
 
     describe(`Methods`, () => {
 
+        const gatewayMock = Gateway.prototype;
+
         describe(`getGateway`, () => {
             // stub gateway object from gateway class
-            let emptyGatewayObj = new Gateway();
             it('should return a valid gateway object if setupGateway returns a valid gateway object', async () => {
                 (CreateGateway.prototype.setupGateway as any) = jest.fn(()  =>  {
-                    return emptyGatewayObj;
+                    return gatewayMock;
                 });
                 const testGetGateway = await fabricHelper.getGateway();
-                expect(testGetGateway).toMatchObject(emptyGatewayObj);
+                expect(testGetGateway).toMatchObject(gatewayMock);
             });
         });
 
         describe(`getOrgAdmin`, () => {
-            let emptyGatewayObj = new Gateway();
-            let clientObj = FabricClient.loadFromConfig(EXAMPLE_CONNECTION_PROFILE_PATH);
-            let emptyUserObj = new FabricClient.User(null);
+
+            let clientMock = FabricClient.loadFromConfig(EXAMPLE_CONNECTION_PROFILE_PATH);
             
             beforeEach(async () => {
                 (CreateGateway.prototype.setupGateway as any) = jest.fn(()  =>  {
-                    return emptyGatewayObj;
+                    return gatewayMock;
                 });
                 let gatewayObj = await fabricHelper.getGateway();
                 (gatewayObj.getClient as any) = jest.fn(()  =>  {
-                    return clientObj;
+                    return clientMock;
                 });
-                // (clientObj.createUser as any) = jest.fn(()  =>  {
-                //     return ;
-                // });
             })
             it('should return an admin user if one exists for a known org', async () => {
                 const admin = await fabricHelper.getOrgAdmin(EXAMPLE_ORGS[0], EXAMPLE_CREDENTIAL_FILE_PATH);
                 expect(admin).toBeInstanceOf(FabricClient.User);
                 expect(admin.getName()).toBe(`peer${EXAMPLE_ORGS[0]}Admin`);
                 expect(admin.getIdentity().getMSPId()).toBe(
-                    `${exampleConnectionProfile[EXAMPLE_ORGS[0]].mspid}`
+                    `${exampleConnectionProfile.organizations[EXAMPLE_ORGS[0]].mspid}`
                 );
             });
             it('should throw an error when retrieving an admin for an unknown org', async () => {

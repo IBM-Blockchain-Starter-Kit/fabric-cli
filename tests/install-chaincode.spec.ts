@@ -1,37 +1,40 @@
-import FabricHelper from './FabricHelper';
+import FabricHelper from '../src/lib/FabricHelper';
 import * as FabricClient from 'fabric-client';
-import { installChaincode } from './install-chaincode';
+import { installChaincode } from '../src/lib/install-chaincode';
+import { DEFAULT_CHAINCODE_TYPE } from '../src/lib/constants';
 import { Gateway } from 'fabric-network';
-import { DEFAULT_CHAINCODE_TYPE } from './constants';
 
-let EXAMPLE_CONNECTION_PROFILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/connection-profile.json';
+let EXAMPLE_CONNECTION_PROFILE_PATH = `${__dirname}/../updatedTestData/connection-profile.json`;
 let EXAMPLE_CHANNEL_NAME = 'channel1';
 let EXAMPLE_CHAINCODE_NAME = 'UnitTests1';
-let EXAMPLE_CHAINCODE_PATH = '/Users/marcjabbour/Downloads/T3-fabric-samples-release-1.4/chaincode/fabcar/typescript';
+let EXAMPLE_CHAINCODE_PATH = '/example/chaincode/path';
 let EXAMPLE_CHAINCODE_VERSION = '1';
 let EXAMPLE_ORGNAME = 'org1msp';
 let EXAMPLE_CHAINCODE_TYPE: FabricClient.ChaincodeType = "node";
-let EXAMPLE_CREDENTIAL_FILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/admin-identity-file.json';
+let EXAMPLE_CREDENTIAL_FILE_PATH = `${__dirname}/../updatedTestData/admin-identity-file.json`;
 
 
 describe('InstallTest', () => {
     describe('#installChaincode', () => {
-        let emptyGatewayObj = new Gateway();
-        let emptyClientObj = new FabricClient();
+
+        const gatewayMock = Gateway.prototype;
+        const clientMock = FabricClient.prototype;
+        const userMock = FabricClient.User.prototype;
 
         beforeAll(() => {
+            
             (FabricClient.prototype.installChaincode as any) = jest.fn();
             (FabricHelper.inspectProposalResponses as any) = jest.fn();
             (FabricHelper.prototype.getGateway as any) = jest.fn(() => {
-                return emptyGatewayObj;
+                return gatewayMock;
             });
-            (emptyGatewayObj.getClient as any) = jest.fn(()  =>  {
-                return emptyClientObj;
+            (gatewayMock.getClient as any) = jest.fn(()  =>  {
+                return clientMock;
             });
             (FabricHelper.prototype.getOrgAdmin as any) = jest.fn(() => {
-                return new FabricClient.User(null);
+                return userMock;
             });
-            (FabricClient.prototype.getPeersForOrg as any) = jest.fn(() => {
+            (clientMock.getPeersForOrg as any) = jest.fn(() => {
                 return [];
             });
         });

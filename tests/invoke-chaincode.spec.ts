@@ -1,10 +1,10 @@
 import * as FabricClient from 'fabric-client';
-import FabricHelper from './FabricHelper';
-import { invokeChaincode } from './invoke-chaincode';
+import FabricHelper from '../src/lib/FabricHelper';
+import { invokeChaincode } from '../src/lib/invoke-chaincode';
 import { Network, Gateway } from 'fabric-network';
 
 
-const EXAMPLE_CONNECTION_PROFILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/connection-profile.json';
+const EXAMPLE_CONNECTION_PROFILE_PATH = `${__dirname}/../updatedTestData/connection-profile.json`;
 const EXAMPLE_CHANNEL_NAME = 'channel1';
 const EXAMPLE_CHAINCODE_NAME = 'UnitTests1';
 const EXAMPLE_FUNCTION_NAME = 'exampleFunction';
@@ -13,7 +13,7 @@ const EXAMPLE_ORG = 'org1msp';
 const IS_QUERY = true;
 const NOT_QUERY = false;
 const EXAMPLE_TIMEOUT = 120000;
-const EXAMPLE_CREDENTIAL_FILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/admin-identity-file.json';
+const EXAMPLE_CREDENTIAL_FILE_PATH = `${__dirname}/../updatedTestData/admin-identity-file.json`;
 
 const exampleResponsePayload = Buffer.from('Test payload');
 
@@ -76,30 +76,32 @@ const exampleTx: FabricClient.TransactionId = {
 };
 
 describe('invokeChaincode', () => {
-    let emptyGatewayObj = new Gateway();
-    let emptyClientObj = new FabricClient();
-    let emptyNetworkObj : Network = {
+    let gatewayMock = Gateway.prototype
+    let clientMock = FabricClient.prototype
+    let networkMock : Network = {
         getChannel: jest.fn(),
         getContract: jest.fn(),
         addBlockListener: jest.fn(),
         addCommitListener: jest.fn()
     };
-    let emptyChannelObj = new FabricClient.Channel(EXAMPLE_CHANNEL_NAME, emptyClientObj);
+    let userMock = FabricClient.User.prototype;
+    let channelObject = new FabricClient.Channel(EXAMPLE_CHANNEL_NAME, clientMock);
+
     beforeEach(async () => {
         (FabricHelper.prototype.getGateway as any) = jest.fn(() => {
-            return emptyGatewayObj;
+            return gatewayMock;
         });
-        (emptyGatewayObj.getClient as any) = jest.fn(()  =>  {
-            return emptyClientObj;
+        (gatewayMock.getClient as any) = jest.fn(()  =>  {
+            return clientMock;
         });
-        (emptyGatewayObj.getNetwork as any) = jest.fn(()  =>  {
-            return emptyNetworkObj;
+        (gatewayMock.getNetwork as any) = jest.fn(()  =>  {
+            return networkMock;
         });
-        (emptyNetworkObj.getChannel as any) = jest.fn(()  =>  {
-            return emptyChannelObj;
+        (networkMock.getChannel as any) = jest.fn(()  =>  {
+            return channelObject;
         });
         (FabricHelper.prototype.getOrgAdmin as any) = jest.fn(() => {
-            return new FabricClient.User(null);
+            return userMock;
         });
         (FabricClient.prototype.newTransactionID as any) = jest.fn(() => {
             return exampleTx;
@@ -108,15 +110,12 @@ describe('invokeChaincode', () => {
 
     it(`should return a response object on successful invoke`, async () => {
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
-        (FabricClient.Channel.prototype
-            .sendTransactionProposal as any) = jest.fn(() => {
+        (FabricClient.Channel.prototype.sendTransactionProposal as any) = jest.fn(() => {
             return exampleProposalResponses;
         });
-        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(
-            () => {
-                return exampleBroadcastResponse;
-            }
-        );
+        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(() => {
+            return exampleBroadcastResponse;
+        });
 
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
@@ -137,17 +136,12 @@ describe('invokeChaincode', () => {
 
     it(`should call sendTransactionProposal with the expected request object`, async () => {
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
-        (FabricClient.Channel.prototype
-            .sendTransactionProposal as any) = jest.fn(() => {
+        (FabricClient.Channel.prototype.sendTransactionProposal as any) = jest.fn(() => {
             return exampleProposalResponses;
         });
-        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(
-            () => {
-                return exampleBroadcastResponse;
-            }
-        );
-
-
+        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(() => {
+            return exampleBroadcastResponse;
+        });
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
         await invokeChaincode(
@@ -169,26 +163,18 @@ describe('invokeChaincode', () => {
             fcn: EXAMPLE_FUNCTION_NAME
         };
 
-        expect(
-            FabricClient.Channel.prototype.sendTransactionProposal
-        ).toBeCalledTimes(1);
-        expect(
-            FabricClient.Channel.prototype.sendTransactionProposal
-        ).toBeCalledWith(request, EXAMPLE_TIMEOUT);
+        expect(FabricClient.Channel.prototype.sendTransactionProposal).toBeCalledTimes(1);
+        expect(FabricClient.Channel.prototype.sendTransactionProposal).toBeCalledWith(request, EXAMPLE_TIMEOUT);
     });
 
     it(`should call channel.sendTransaction with the expected transaction request`, async () => {
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
-        (FabricClient.Channel.prototype
-            .sendTransactionProposal as any) = jest.fn(() => {
+        (FabricClient.Channel.prototype.sendTransactionProposal as any) = jest.fn(() => {
             return exampleProposalResponses;
         });
-        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(
-            () => {
-                return exampleBroadcastResponse;
-            }
-        );
-
+        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(() => {
+            return exampleBroadcastResponse;
+        });
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
         await invokeChaincode(
@@ -208,26 +194,18 @@ describe('invokeChaincode', () => {
             proposal: exampleProposalResponses[1]
         };
 
-        expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(
-            1
-        );
-        expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledWith(
-            expectedTransactionRequest,
-            EXAMPLE_TIMEOUT
-        );
+        expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(1);
+        expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledWith(expectedTransactionRequest, EXAMPLE_TIMEOUT);
     });
 
     it(`should not send transaction to channel if 'queryOnly' is true`, async () => {
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
-        (FabricClient.Channel.prototype
-            .sendTransactionProposal as any) = jest.fn(() => {
+        (FabricClient.Channel.prototype.sendTransactionProposal as any) = jest.fn(() => {
             return exampleProposalResponses;
         });
-        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(
-            () => {
-                return exampleBroadcastResponse;
-            }
-        );
+        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(() => {
+            return exampleBroadcastResponse;
+        });
 
         (FabricClient.prototype.newTransactionID as any) = jest.fn(() => {
             return exampleTx;
@@ -247,16 +225,13 @@ describe('invokeChaincode', () => {
             EXAMPLE_CREDENTIAL_FILE_PATH
         );
 
-        expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(
-            0
-        );
+        expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(0);
         expect(result).toEqual(exampleInvokeResult);
     });
 
     it(`should throw an error if a proposal response is bad`, async () => {
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
-        (FabricClient.Channel.prototype
-            .sendTransactionProposal as any) = jest.fn(() => {
+        (FabricClient.Channel.prototype.sendTransactionProposal as any) = jest.fn(() => {
             return exampleProposalResponsesWithBad;
         });
 
@@ -287,8 +262,7 @@ describe('invokeChaincode', () => {
 
     it(`should throw an error if a broadcast response is bad`, async () => {
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
-        (FabricClient.Channel.prototype
-            .sendTransactionProposal as any) = jest.fn(() => {
+        (FabricClient.Channel.prototype.sendTransactionProposal as any) = jest.fn(() => {
             return exampleProposalResponses;
         });
 
@@ -296,18 +270,14 @@ describe('invokeChaincode', () => {
             return exampleTx;
         });
 
-        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(
-            () => {
-                return exampleBroadcastResponseBad;
-            }
-        );
+        (FabricClient.Channel.prototype.sendTransaction as any) = jest.fn(() => {
+            return exampleBroadcastResponseBad;
+        });
 
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
         const expectedError = new Error(
-            `sendTransaction returned with an invalid status code: ${
-                exampleBroadcastResponseBad.status
-            }: ${exampleBroadcastResponseBad.info}`
+            `sendTransaction returned with an invalid status code: ${exampleBroadcastResponseBad.status}: ${exampleBroadcastResponseBad.info}`
         );
 
         await expect(
@@ -324,4 +294,6 @@ describe('invokeChaincode', () => {
             )
         ).rejects.toThrow(expectedError);
     });
+
+
 });
