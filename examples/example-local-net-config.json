@@ -1,0 +1,37 @@
+{
+    "network-config": {
+        "orderer": {
+            "url": "grpc://localhost:17050",
+            "server-hostname": "grpc://localhost:17050"
+        },
+        "org1": {
+            "name": "Org1",
+            "mspid": "Org1MSP",
+            "ca": {
+                "url": "http://localhost:17054",
+                "name": "ca.example.com"
+            },
+            "peers": {
+                "peer1": {
+                    "requests": "grpc://localhost:17051",
+                    "events": "grpc://localhost:17053",
+                    "server-hostname": "peer0.org1.example.com"
+                }
+            },
+            "admin": {
+                "key": "./local_fabric/wallet/Admincry/key",
+                "cert": "./local_fabric/wallet/Admincry/cert"
+            },
+            "chaincode": [
+                {
+                    "name": "device-access",
+                    "path": "~/.fabric-vscode/packages/",
+                    "channels": ["mychannel"],
+                    "init_args": [],
+                    "instantiate": "false",
+                    "install": "true"
+                }
+            ]
+        }
+    }
+}
