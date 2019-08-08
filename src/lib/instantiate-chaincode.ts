@@ -20,6 +20,7 @@ import { inspect } from 'util';
 import { DEFAULT_CHAINCODE_TYPE } from './constants';
 import FabricHelper from './FabricHelper';
 import { Gateway, Network } from 'fabric-network';
+import * as fs from 'fs';
 
 const logger = FabricHelper.getLogger('instantiate-chaincode');
 
@@ -34,7 +35,8 @@ export async function instantiateChaincode(
     timeout: number,
     endorsementPolicy: any,
     chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE,
-    credentialFilePath: string
+    credentialFilePath: string,
+    collectionsConfigFilePath: string
 ): Promise<void> {
     logger.debug(
         `============ Deploying smart contract to all Peers on Channel ${chaincodeName} for organization ${orgName} ============`
@@ -109,7 +111,8 @@ export async function instantiateChaincode(
             tx_id,
             functionName,
             endorsementPolicy,
-            args
+            args,
+            collectionsConfigFilePath
         );
 
         await deployChaincode(channel, deploymentOptions, upgrade, timeout);
@@ -131,7 +134,9 @@ function buildDeploymentOptions(
     tx_id: FabricClient.TransactionId,
     functionName: string,
     endorsementPolicy: string,
-    args: string[]
+    args: string[],
+    collectionsConfigFilePath: string,
+
 ): FabricClient.ChaincodeInstantiateUpgradeRequest {
     const deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest = {
         chaincodeType,
@@ -147,6 +152,11 @@ function buildDeploymentOptions(
         // TODO: Test that endorsement policy is actuall set on the channel
         deploymentOptions['endorsement-policy'] = JSON.parse(endorsementPolicy);
         logger.info('The endorsementPolicy value: ' + endorsementPolicy);
+    }
+    if (collectionsConfigFilePath) {
+        const collectionsConfig = fs.readFileSync(collectionsConfigFilePath).toString();
+        deploymentOptions['collections-config'] = JSON.parse(collectionsConfig);
+        logger.info('The endorsementPolicy value: ' + collectionsConfig);
     }
     if (args) {
         deploymentOptions.args = args;

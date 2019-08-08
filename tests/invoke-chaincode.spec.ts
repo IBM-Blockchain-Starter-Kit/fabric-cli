@@ -82,7 +82,8 @@ describe('invokeChaincode', () => {
         getChannel: jest.fn(),
         getContract: jest.fn(),
         addBlockListener: jest.fn(),
-        addCommitListener: jest.fn()
+        addCommitListener: jest.fn(),
+        unregisterAllEventListeners: jest.fn()
     };
     let userMock = FabricClient.User.prototype;
     let channelObject = new FabricClient.Channel(EXAMPLE_CHANNEL_NAME, clientMock);
@@ -144,7 +145,7 @@ describe('invokeChaincode', () => {
         });
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
-        await invokeChaincode(
+       const result = await invokeChaincode(
             EXAMPLE_CONNECTION_PROFILE_PATH,
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
@@ -165,6 +166,7 @@ describe('invokeChaincode', () => {
 
         expect(FabricClient.Channel.prototype.sendTransactionProposal).toBeCalledTimes(1);
         expect(FabricClient.Channel.prototype.sendTransactionProposal).toBeCalledWith(request, EXAMPLE_TIMEOUT);
+        expect(result).toEqual(exampleInvokeResult);
     });
 
     it(`should call channel.sendTransaction with the expected transaction request`, async () => {
@@ -177,7 +179,7 @@ describe('invokeChaincode', () => {
         });
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
-        await invokeChaincode(
+        const result = await invokeChaincode(
             EXAMPLE_CONNECTION_PROFILE_PATH,
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
@@ -196,6 +198,7 @@ describe('invokeChaincode', () => {
 
         expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(1);
         expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledWith(expectedTransactionRequest, EXAMPLE_TIMEOUT);
+        expect(result).toEqual(exampleInvokeResult);
     });
 
     it(`should not send transaction to channel if 'queryOnly' is true`, async () => {
