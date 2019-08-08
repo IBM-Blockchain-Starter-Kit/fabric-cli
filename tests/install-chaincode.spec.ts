@@ -36,7 +36,6 @@ describe('InstallTest', () => {
         const userMock = FabricClient.User.prototype;
 
         beforeAll(() => {
-
             (FabricClient.prototype.installChaincode as any) = jest.fn();
             (FabricHelper.inspectProposalResponses as any) = jest.fn();
             (FabricHelper.prototype.getGateway as any) = jest.fn(() => {
