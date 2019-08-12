@@ -1,4 +1,4 @@
-import * as FabricClient from 'fabric-client';
+                     import * as FabricClient from 'fabric-client';
 import FabricHelper from '../src/lib/FabricHelper';
 import { invokeChaincode } from '../src/lib/invoke-chaincode';
 import { Network, Gateway } from 'fabric-network';
