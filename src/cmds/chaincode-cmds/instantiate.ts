@@ -109,6 +109,10 @@ export function builder(yargs) {
             }
         })
         .check(function(argv) {
+
+            if(!argv['collections-config']){
+              return true;
+            }
             //validate endorsement policy (i.e. validate it is JSON)
             var collectionsConfigPath = argv['collections-config']
             var collectionsConfig = fs.readFileSync(collectionsConfigPath);
@@ -116,7 +120,7 @@ export function builder(yargs) {
                 console.log(
                     'Collections config provided as input: ' + collectionsConfig
                 );
-                //JSON.parse(collectionsConfig);
+                JSON.parse(collectionsConfig.toString());
                 return true;
             } catch (err) {
                 console.log(
