@@ -44,7 +44,7 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
-        .option('init-function', {
+        .option('init-fn', {
             demandOption: false,
             describe: 'Function to call on instantiation call.',
             requiresArg: false,
@@ -110,7 +110,7 @@ export function builder(yargs) {
         })
         .check(function(argv) {
             console.log("here");
-            if(!argv['collections-config']){
+            if (!argv['collections-config']) {
               return true;
             }
             //validate endorsement policy (i.e. validate it is JSON)
@@ -140,7 +140,7 @@ export async function handler(argv) {
         argv['channel'],
         argv['cc-name'],
         argv['cc-version'],
-        argv['init-function'],
+        argv['init-fn'],
         argv['init-args'],
         argv['org'],
         argv['timeout'],
