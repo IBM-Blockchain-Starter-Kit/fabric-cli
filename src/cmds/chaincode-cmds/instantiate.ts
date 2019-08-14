@@ -109,7 +109,7 @@ export function builder(yargs) {
             }
         })
         .check(function(argv) {
-
+            console.log("here");
             if(!argv['collections-config']){
               return true;
             }
@@ -130,28 +130,6 @@ export function builder(yargs) {
                     'Invalid --collections-config argument. It was not a valid JSON.'
                 );
             }
-        })
-        .check(function(argv) {
-            if (!argv['cc-type'] || argv['cc-type'] === 'golang') {
-                if (!process.env.GOPATH) {
-                    throw new Error(
-                        'GOPATH environment is not set. Environment setting required to deploy chaincode'
-                    );
-                }
-                let absolutePathChaincode = path.join(
-                    process.env.GOPATH,
-                    'src',
-                    argv['src-dir']
-                );
-
-                if (!fs.existsSync(absolutePathChaincode)) {
-                    throw new Error(
-                        'Could not find absolute path for chaincode based on GOPATH variable and --src-dir argument.  Absolute path built: ' +
-                            absolutePathChaincode
-                    );
-                }
-            }
-            return true;
         });
 }
 
