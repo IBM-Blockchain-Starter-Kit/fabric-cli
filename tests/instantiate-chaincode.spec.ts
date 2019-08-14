@@ -14,6 +14,7 @@ const EXAMPLE_ARGS = [];
 const EXAMPLE_FUNCTION_NAME = '';
 const EXAMPLE_FUNCTION_NAME_NOT_EMPTY = 'init'
 const EXAMPLE_TIMEOUT = 120000;
+const EXAMPLE_COLLECTIONS_CONFIG = '';
 const EXAMPLE_ENDORSEMENT_POLICY = {
     identities: [
         { role: { name: 'member', mspId: 'org1' } },
@@ -75,7 +76,8 @@ describe('instantiateChaincode', () => {
         getChannel: jest.fn(),
         getContract: jest.fn(),
         addBlockListener: jest.fn(),
-        addCommitListener: jest.fn()
+        addCommitListener: jest.fn(),
+        unregisterAllEventListeners: jest.fn()
     };
     const userMock = FabricClient.User.prototype;
 
@@ -126,7 +128,7 @@ describe('instantiateChaincode', () => {
         (channelObject.getPeers as any) = jest.fn(() => {
             return exampleChannelPeerArray;
         });
-        (FabricClient.prototype.getName as any) = jest.fn(() => {
+        (exampleChannelPeer.getName as any) = jest.fn(() => {
             return 'grpcs://peerUrl'
         });
     });
@@ -152,7 +154,9 @@ describe('instantiateChaincode', () => {
             EXAMPLE_TIMEOUT,
             JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CHAINCODE_TYPE_NODE,
-            EXAMPLE_CREDENTIAL_FILE_PATH
+            EXAMPLE_CREDENTIAL_FILE_PATH,
+            EXAMPLE_COLLECTIONS_CONFIG
+
         );
 
         expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(1);
@@ -177,12 +181,14 @@ describe('instantiateChaincode', () => {
             EXAMPLE_TIMEOUT,
             JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CHAINCODE_TYPE_NODE,
-            EXAMPLE_CREDENTIAL_FILE_PATH
+            EXAMPLE_CREDENTIAL_FILE_PATH,
+            EXAMPLE_COLLECTIONS_CONFIG
         );
 
         expect(FabricClient.Channel.prototype.sendInstantiateProposal).toBeCalledTimes(1);
         expect(FabricClient.Channel.prototype.sendUpgradeProposal).toBeCalledTimes(0);
         expect(FabricClient.Channel.prototype.sendInstantiateProposal).toBeCalledWith(exampleDeploymentOptions, EXAMPLE_TIMEOUT);
+        expect(FabricHelper.inspectProposalResponses).toBeCalledWith(exampleProposalResponses);
     });
 
     it('should call sendUpgradeProposal() with the expected request for upgrade', async () => {
@@ -212,12 +218,15 @@ describe('instantiateChaincode', () => {
             EXAMPLE_TIMEOUT,
             JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CHAINCODE_TYPE_NODE,
-            EXAMPLE_CREDENTIAL_FILE_PATH
+            EXAMPLE_CREDENTIAL_FILE_PATH,
+            EXAMPLE_COLLECTIONS_CONFIG
         );
 
+        //why is it 0? look into this      ALSO add "successfull ..." assertion
         expect(FabricClient.Channel.prototype.sendInstantiateProposal).toBeCalledTimes(0);
         expect(FabricClient.Channel.prototype.sendUpgradeProposal).toBeCalledTimes(1);
         expect(FabricClient.Channel.prototype.sendUpgradeProposal).toBeCalledWith(exampleDeploymentOptions, EXAMPLE_TIMEOUT);
+        expect(FabricHelper.inspectProposalResponses).toBeCalledWith(exampleProposalResponses);
     });
 
     it('should default the chaincode type to \'golang\' when no chaincode type is given', async () => {
@@ -236,13 +245,15 @@ describe('instantiateChaincode', () => {
             EXAMPLE_TIMEOUT,
             JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             DEFAULT_CHAINCODE_TYPE,
-            EXAMPLE_CREDENTIAL_FILE_PATH
+            EXAMPLE_CREDENTIAL_FILE_PATH,
+            EXAMPLE_COLLECTIONS_CONFIG
         );
 
         expect(FabricClient.Channel.prototype.sendInstantiateProposal).toBeCalledWith(exampleDeploymentOptionsDefaultChaincodeType, EXAMPLE_TIMEOUT);
+        expect(FabricHelper.inspectProposalResponses).toBeCalledWith(exampleProposalResponses);
     });
 
-    it('should instantiate when an init function is provided', async () => {
+    it('should still instantiate successfully when a specific init-function is specified', async () => {
         (FabricClient.Channel.prototype.queryInstantiatedChaincodes as any) = jest.fn(() => {
             return { chaincodes: [] } as FabricClient.ChaincodeQueryResponse;
         });
@@ -258,9 +269,11 @@ describe('instantiateChaincode', () => {
             EXAMPLE_TIMEOUT,
             JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             DEFAULT_CHAINCODE_TYPE,
-            EXAMPLE_CREDENTIAL_FILE_PATH
+            EXAMPLE_CREDENTIAL_FILE_PATH,
+            EXAMPLE_COLLECTIONS_CONFIG
         );
 
         expect(FabricClient.Channel.prototype.sendInstantiateProposal).toBeCalledTimes(1);
+        expect(FabricHelper.inspectProposalResponses).toBeCalledWith(exampleProposalResponses);
     });
 });

@@ -63,13 +63,10 @@ describe(`FabricHelper Static Functions`, () => {
         it('should return a comma delimited string of peers on a channel', () => {
             let examplePeerArr = [examplePeer1, examplePeer2]
             client = new FabricClient();
-            (client.getPeersForOrg as any) = jest.fn(()  =>  {
+            (client.getPeersForOrg as any) = jest.fn(() => {
                 return examplePeerArr;
             });
-
             const installTargetPeers = examplePeerArr;
-
-    
             const result = FabricHelper.getPeerNamesAsString(
                 installTargetPeers
             );
@@ -219,7 +216,7 @@ describe(`FabricHelper Static Functions`, () => {
 
             const expectedError = new Error(
                 `sendTransaction returned with an invalid status code: ${
-                    exampleBroadcastResponseBad.status
+                exampleBroadcastResponseBad.status
                 }: ${exampleBroadcastResponseBad.info}`
             );
 
@@ -239,54 +236,6 @@ describe(`FabricHelper`, () => {
         );
     });
 
-    describe(`Constructor`, () => {
-        // describe(`Client setup`, () => {
-        //     it(`should create a client for each org given`, () => {
-        //         expect(
-        //             fabricHelper.getClientForOrg(EXAMPLE_ORGS[0])
-        //         ).toBeInstanceOf(FabricClient);
-
-        //         expect(
-        //             fabricHelper.getClientForOrg(EXAMPLE_ORGS[1])
-        //         ).toBeInstanceOf(FabricClient);
-
-        //         expect(
-        //             fabricHelper.getClientForOrg(EXAMPLE_ORGS[2])
-        //         ).toBeInstanceOf(FabricClient);
-        //     });
-
-        //     it(`should not create a client for an orderer org`, () => {
-        //         expect(
-        //             fabricHelper.getClientForOrg('orderer')
-        //         ).not.toBeDefined();
-        //     });
-        // });
-
-//         describe(`Channel setup`, () => {
-//             it('should create a channel for each org', () => {
-//                 expect(
-//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[0])
-//                 ).toBeInstanceOf(FabricClient.Channel);
-//                 expect(
-//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[0]).getName()
-//                 ).toBe(EXAMPLE_CHANNEL_NAME);
-
-//                 expect(
-//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[1])
-//                 ).toBeInstanceOf(FabricClient.Channel);
-//                 expect(
-//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[1]).getName()
-//                 ).toBe(EXAMPLE_CHANNEL_NAME);
-
-//                 expect(
-//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[2])
-//                 ).toBeInstanceOf(FabricClient.Channel);
-//                 expect(
-//                     fabricHelper.getChannelForOrg(EXAMPLE_ORGS[2]).getName()
-//                 ).toBe(EXAMPLE_CHANNEL_NAME);
-//             });
-        });
-
     describe(`Methods`, () => {
 
         const gatewayMock = Gateway.prototype;
@@ -294,7 +243,7 @@ describe(`FabricHelper`, () => {
         describe(`getGateway`, () => {
             // stub gateway object from gateway class
             it('should return a valid gateway object if setupGateway returns a valid gateway object', async () => {
-                (CreateGateway.prototype.setupGateway as any) = jest.fn(()  =>  {
+                (CreateGateway.prototype.setupGateway as any) = jest.fn(() => {
                     return gatewayMock;
                 });
                 const testGetGateway = await fabricHelper.getGateway();
@@ -305,13 +254,13 @@ describe(`FabricHelper`, () => {
         describe(`getOrgAdmin`, () => {
 
             let clientMock = FabricClient.loadFromConfig(EXAMPLE_CONNECTION_PROFILE_PATH);
-            
+
             beforeEach(async () => {
-                (CreateGateway.prototype.setupGateway as any) = jest.fn(()  =>  {
+                (CreateGateway.prototype.setupGateway as any) = jest.fn(() => {
                     return gatewayMock;
                 });
                 let gatewayObj = await fabricHelper.getGateway();
-                (gatewayObj.getClient as any) = jest.fn(()  =>  {
+                (gatewayObj.getClient as any) = jest.fn(() => {
                     return clientMock;
                 });
             })

@@ -82,6 +82,14 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
+        .option('collections-config', {
+            demandOption: false,
+            describe:
+                'Absolute path to where the collections-config file is located',
+            requiresArg: true,
+            type: 'string',
+            default: null
+        })
         .check(function(argv) {
             //validate endorsement policy (i.e. validate it is JSON)
             var endorsementPolicy = argv['endorsement-policy'];
@@ -97,6 +105,29 @@ export function builder(yargs) {
                 );
                 throw new Error(
                     'Invalid --endorsement-policy argument. It was not a valid JSON.'
+                );
+            }
+        })
+        .check(function(argv) {
+
+            if(!argv['collections-config']){
+              return true;
+            }
+            //validate endorsement policy (i.e. validate it is JSON)
+            var collectionsConfigPath = argv['collections-config']
+            var collectionsConfig = fs.readFileSync(collectionsConfigPath);
+            try {
+                console.log(
+                    'Collections config provided as input: ' + collectionsConfig
+                );
+                JSON.parse(collectionsConfig.toString());
+                return true;
+            } catch (err) {
+                console.log(
+                    'Failed to parse as JSON provided collectionsConfig: ' + err
+                );
+                throw new Error(
+                    'Invalid --collections-config argument. It was not a valid JSON.'
                 );
             }
         })
@@ -120,7 +151,6 @@ export function builder(yargs) {
                     );
                 }
             }
-
             return true;
         });
 }
@@ -138,6 +168,7 @@ export async function handler(argv) {
         argv['timeout'],
         argv['endorsement-policy'],
         argv['cc-type'],
-        argv['admin-identity']
+        argv['admin-identity'],
+        argv['collections-config']
     );
 }

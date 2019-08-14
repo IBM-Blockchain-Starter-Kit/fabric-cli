@@ -14,6 +14,20 @@ let EXAMPLE_CHAINCODE_TYPE: FabricClient.ChaincodeType = "node";
 let EXAMPLE_CREDENTIAL_FILE_PATH = `${__dirname}/../updatedTestData/admin-identity-file.json`;
 
 
+const exampleProposalResponse1: any = {
+    response: { status: 200 }
+};
+const exampleProposalResponse2: any = {
+    response: { status: 200 }
+};
+
+const exampleProposal: any = {};
+
+const exampleProposalResponses = [
+    [exampleProposalResponse1, exampleProposalResponse2],
+    exampleProposal
+];
+
 describe('InstallTest', () => {
     describe('#installChaincode', () => {
 
@@ -22,13 +36,12 @@ describe('InstallTest', () => {
         const userMock = FabricClient.User.prototype;
 
         beforeAll(() => {
-            
             (FabricClient.prototype.installChaincode as any) = jest.fn();
             (FabricHelper.inspectProposalResponses as any) = jest.fn();
             (FabricHelper.prototype.getGateway as any) = jest.fn(() => {
                 return gatewayMock;
             });
-            (gatewayMock.getClient as any) = jest.fn(()  =>  {
+            (gatewayMock.getClient as any) = jest.fn(() => {
                 return clientMock;
             });
             (FabricHelper.prototype.getOrgAdmin as any) = jest.fn(() => {
@@ -63,7 +76,7 @@ describe('InstallTest', () => {
             );
 
             expect(FabricClient.prototype.installChaincode).toBeCalledTimes(1);
-            expect(FabricClient.prototype.installChaincode).toBeCalledWith(exampleRequest);
+            expect(FabricClient.prototype.installChaincode).toBeCalledWith(exampleRequest)
 
         });
         it('should default the chaincodeType to "golang" if non is supplied', async () => {
@@ -87,9 +100,7 @@ describe('InstallTest', () => {
             );
 
             expect(FabricClient.prototype.installChaincode).toBeCalledTimes(1);
-            expect(FabricClient.prototype.installChaincode).toBeCalledWith(
-                exampleRequest
-            );
+            expect(FabricClient.prototype.installChaincode).toBeCalledWith(exampleRequest);
         });
         it('should inspect the proposalResponses', async () => {
             await installChaincode(
