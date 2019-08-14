@@ -48,11 +48,6 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
-        // .option('channel', {
-        //     demandOption: false,
-        //     describe: 'Name of the channel to install chaincode',
-        //     type: 'string'
-        // })
         .option('admin-identity', {
             demandOption: true,
             describe:
@@ -87,16 +82,6 @@ export function builder(yargs) {
 }
 
 export async function handler(argv): Promise<void> {
-    if (
-        (!argv['cc-type'] || argv['cc-type'] === 'golang') &&
-        !process.env.GOPATH
-    ) {
-        throw new Error(
-            'GOPATH environment variable must be defined in order to run this command.'
-        );
-    }
-
-    console.log('Installing chaincode');
     return await installChaincode(
         argv['conn-profile'],
         argv['channel'],
