@@ -1,0 +1,5 @@
+{
+    "name": "Fake Admin",
+    "private_key": "privateKeyExammple",
+    "cert": "publicCertExample"
+}

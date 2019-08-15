@@ -1,6 +1,7 @@
 import * as FabricClient from 'fabric-client';
 import FabricHelper from './FabricHelper';
 import { invokeChaincode } from './invoke-chaincode';
+<<<<<<< HEAD
 
 const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
 const EXAMPLE_CHANNEL_NAME = 'examplechannel';
@@ -12,6 +13,21 @@ const IS_QUERY = true;
 const NOT_QUERY = false;
 const EXAMPLE_TIMEOUT = 120000;
 const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}/..`;
+=======
+import { Network, Gateway } from 'fabric-network';
+
+
+const EXAMPLE_CONNECTION_PROFILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/connection-profile.json';
+const EXAMPLE_CHANNEL_NAME = 'channel1';
+const EXAMPLE_CHAINCODE_NAME = 'UnitTests1';
+const EXAMPLE_FUNCTION_NAME = 'exampleFunction';
+const EXAMPLE_ARGS = [];
+const EXAMPLE_ORG = 'org1msp';
+const IS_QUERY = true;
+const NOT_QUERY = false;
+const EXAMPLE_TIMEOUT = 120000;
+const EXAMPLE_CREDENTIAL_FILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/admin-identity-file.json';
+>>>>>>> master
 
 const exampleResponsePayload = Buffer.from('Test payload');
 
@@ -74,6 +90,39 @@ const exampleTx: FabricClient.TransactionId = {
 };
 
 describe('invokeChaincode', () => {
+<<<<<<< HEAD
+=======
+    let emptyGatewayObj = new Gateway();
+    let emptyClientObj = new FabricClient();
+    let emptyNetworkObj : Network = {
+        getChannel: jest.fn(),
+        getContract: jest.fn(),
+        addBlockListener: jest.fn(),
+        addCommitListener: jest.fn()
+    };
+    let emptyChannelObj = new FabricClient.Channel(EXAMPLE_CHANNEL_NAME, emptyClientObj);
+    beforeEach(async () => {
+        (FabricHelper.prototype.getGateway as any) = jest.fn(() => {
+            return emptyGatewayObj;
+        });
+        (emptyGatewayObj.getClient as any) = jest.fn(()  =>  {
+            return emptyClientObj;
+        });
+        (emptyGatewayObj.getNetwork as any) = jest.fn(()  =>  {
+            return emptyNetworkObj;
+        });
+        (emptyNetworkObj.getChannel as any) = jest.fn(()  =>  {
+            return emptyChannelObj;
+        });
+        (FabricHelper.prototype.getOrgAdmin as any) = jest.fn(() => {
+            return new FabricClient.User(null);
+        });
+        (FabricClient.prototype.newTransactionID as any) = jest.fn(() => {
+            return exampleTx;
+        });
+    });
+
+>>>>>>> master
     it(`should return a response object on successful invoke`, async () => {
         (FabricClient.Channel.prototype.initialize as any) = jest.fn();
         (FabricClient.Channel.prototype
@@ -89,7 +138,11 @@ describe('invokeChaincode', () => {
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
         const result = await invokeChaincode(
+<<<<<<< HEAD
             PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+            EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_FUNCTION_NAME,
@@ -97,7 +150,11 @@ describe('invokeChaincode', () => {
             EXAMPLE_ORG,
             NOT_QUERY,
             EXAMPLE_TIMEOUT,
+<<<<<<< HEAD
             EXAMPLE_CRYPTO_DIR_PATH
+=======
+            EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
         );
 
         expect(result).toEqual(exampleInvokeResult);
@@ -115,14 +172,21 @@ describe('invokeChaincode', () => {
             }
         );
 
+<<<<<<< HEAD
         (FabricClient.prototype.newTransactionID as any) = jest.fn(() => {
             return exampleTx;
         });
+=======
+>>>>>>> master
 
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
         await invokeChaincode(
+<<<<<<< HEAD
             PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+            EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_FUNCTION_NAME,
@@ -130,7 +194,11 @@ describe('invokeChaincode', () => {
             EXAMPLE_ORG,
             NOT_QUERY,
             EXAMPLE_TIMEOUT,
+<<<<<<< HEAD
             EXAMPLE_CRYPTO_DIR_PATH
+=======
+            EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
         );
 
         const request: FabricClient.ChaincodeInvokeRequest = {
@@ -163,7 +231,11 @@ describe('invokeChaincode', () => {
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
         await invokeChaincode(
+<<<<<<< HEAD
             PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+            EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_FUNCTION_NAME,
@@ -171,7 +243,11 @@ describe('invokeChaincode', () => {
             EXAMPLE_ORG,
             NOT_QUERY,
             EXAMPLE_TIMEOUT,
+<<<<<<< HEAD
             EXAMPLE_CRYPTO_DIR_PATH
+=======
+            EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
         );
 
         const expectedTransactionRequest = {
@@ -207,7 +283,11 @@ describe('invokeChaincode', () => {
         (FabricHelper.registerAndConnectTxEventHub as any) = jest.fn();
 
         const result = await invokeChaincode(
+<<<<<<< HEAD
             PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+            EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_FUNCTION_NAME,
@@ -215,7 +295,11 @@ describe('invokeChaincode', () => {
             EXAMPLE_ORG,
             IS_QUERY,
             EXAMPLE_TIMEOUT,
+<<<<<<< HEAD
             EXAMPLE_CRYPTO_DIR_PATH
+=======
+            EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
         );
 
         expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(
@@ -243,7 +327,11 @@ describe('invokeChaincode', () => {
 
         await expect(
             invokeChaincode(
+<<<<<<< HEAD
                 PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+                EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
                 EXAMPLE_CHANNEL_NAME,
                 EXAMPLE_CHAINCODE_NAME,
                 EXAMPLE_FUNCTION_NAME,
@@ -251,7 +339,11 @@ describe('invokeChaincode', () => {
                 EXAMPLE_ORG,
                 NOT_QUERY,
                 EXAMPLE_TIMEOUT,
+<<<<<<< HEAD
                 EXAMPLE_CRYPTO_DIR_PATH
+=======
+                EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
             )
         ).rejects.toThrow(expectedError);
     });
@@ -283,7 +375,11 @@ describe('invokeChaincode', () => {
 
         await expect(
             invokeChaincode(
+<<<<<<< HEAD
                 PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+                EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
                 EXAMPLE_CHANNEL_NAME,
                 EXAMPLE_CHAINCODE_NAME,
                 EXAMPLE_FUNCTION_NAME,
@@ -291,7 +387,11 @@ describe('invokeChaincode', () => {
                 EXAMPLE_ORG,
                 NOT_QUERY,
                 EXAMPLE_TIMEOUT,
+<<<<<<< HEAD
                 EXAMPLE_CRYPTO_DIR_PATH
+=======
+                EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
             )
         ).rejects.toThrow(expectedError);
     });

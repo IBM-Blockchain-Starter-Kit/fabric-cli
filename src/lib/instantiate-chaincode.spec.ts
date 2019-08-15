@@ -2,11 +2,24 @@ import * as FabricClient from 'fabric-client';
 import { DEFAULT_CHAINCODE_TYPE } from './constants';
 import FabricHelper from './FabricHelper';
 import { instantiateChaincode } from './instantiate-chaincode';
+<<<<<<< HEAD
 
 const EXAMPLE_CHAINCODE_NAME = 'examplechaincode';
 const EXAMPLE_CHAINCODE_VERSION = 2;
 const EXAMPLE_CHANNEL_NAME = 'examplechannel';
 const EXAMPLE_CRYPTO_DIR_PATH = `${__dirname}/..`;
+=======
+import { Gateway , Network } from 'fabric-network';
+import { networkInterfaces } from 'os';
+import { ChannelPeerRoles} from 'fabric-client';
+
+const EXAMPLE_CONNECTION_PROFILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/connection-profile.json';
+const EXAMPLE_ORGNAME = 'org1msp';
+const EXAMPLE_CREDENTIAL_FILE_PATH = '/Users/marcjabbour/Downloads/fabric-cli-master-functional/updatedTestData/admin-identity-file.json';
+const EXAMPLE_CHAINCODE_NAME = 'UnitTests1';
+const EXAMPLE_CHAINCODE_VERSION = 1;
+const EXAMPLE_CHANNEL_NAME = 'channel1';
+>>>>>>> master
 const EXAMPLE_ARGS = [];
 const EXAMPLE_FUNCTION_NAME = '';
 const EXAMPLE_TIMEOUT = 120000;
@@ -21,11 +34,16 @@ const EXAMPLE_ENDORSEMENT_POLICY = {
 };
 const EXAMPLE_CHAINCODE_TYPE_NODE = 'node';
 
+<<<<<<< HEAD
 const PATH_TO_EXAMPLE_NETWORK_CONFIG = `${__dirname}/../../testData/example-network-config.json`;
 let exampleNetworkConfig: any = require(PATH_TO_EXAMPLE_NETWORK_CONFIG);
 exampleNetworkConfig = exampleNetworkConfig['network-config'];
 
 const EXAMPLE_ORGS = ['org1', 'org2', 'org3'];
+=======
+let exampleConnectionProfile: any = require(EXAMPLE_CONNECTION_PROFILE_PATH);
+exampleConnectionProfile = exampleConnectionProfile['conn-profile'];
+>>>>>>> master
 
 const exampleProposalResponse1: any = {
     response: { status: 200 }
@@ -68,6 +86,27 @@ const exampleDeploymentOptionsDefaultChaincodeType: FabricClient.ChaincodeInstan
 };
 
 describe('instantiateChaincode', () => {
+<<<<<<< HEAD
+=======
+    let emptyGatewayObj = new Gateway();
+    let emptyClientObj = new FabricClient();
+    let emptyNetworkObj : Network = {
+        getChannel: jest.fn(),
+        getContract: jest.fn(),
+        addBlockListener: jest.fn(),
+        addCommitListener: jest.fn()
+    };
+    let connectionOpts : FabricClient.ConnectionOpts = {
+        pem: 'examplePem'
+    };
+    let emptyChannelObj = new FabricClient.Channel(EXAMPLE_CHANNEL_NAME, emptyClientObj);
+    let examplePeer = new FabricClient.Peer('grpcs://peerUrl', connectionOpts);
+    emptyChannelObj.addPeer(examplePeer, 'org1msp');
+    let exampleChannelPeer = emptyChannelObj.getPeer('peerUrl')
+    let exampleChannelPeerArray : FabricClient.ChannelPeer[] = [];
+    exampleChannelPeerArray[0] = exampleChannelPeer;
+
+>>>>>>> master
     beforeEach(async () => {
         (FabricClient.prototype.newTransactionID as any) = jest.fn(() => {
             return exampleTx;
@@ -88,6 +127,35 @@ describe('instantiateChaincode', () => {
                 return exampleProposalResponses;
             }
         );
+<<<<<<< HEAD
+=======
+        (FabricClient.prototype.installChaincode as any) = jest.fn();
+        (FabricHelper.inspectProposalResponses as any) = jest.fn();
+        (FabricHelper.prototype.getGateway as any) = jest.fn(() => {
+            return emptyGatewayObj;
+        });
+        (emptyGatewayObj.getClient as any) = jest.fn(()  =>  {
+            return emptyClientObj;
+        });
+        (emptyGatewayObj.getNetwork as any) = jest.fn(()  =>  {
+            return emptyNetworkObj;
+        });
+        (emptyNetworkObj.getChannel as any) = jest.fn(()  =>  {
+            return emptyChannelObj;
+        });
+        (FabricHelper.prototype.getOrgAdmin as any) = jest.fn(() => {
+            return new FabricClient.User(null);
+        });
+        (FabricClient.prototype.getPeersForOrg as any) = jest.fn(() => {
+            return [];
+        });
+        (emptyChannelObj.getPeers as any) = jest.fn(() => {
+            return exampleChannelPeerArray;
+        });
+        (FabricClient.prototype.getName as any) =  jest.fn(() => {
+            return 'grpcs://peerUrl'
+        })
+>>>>>>> master
     });
 
     afterEach(() => {
@@ -103,17 +171,29 @@ describe('instantiateChaincode', () => {
         (FabricHelper.inspectProposalResponses as any) = jest.fn();
 
         await instantiateChaincode(
+<<<<<<< HEAD
             PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+            EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_CHAINCODE_VERSION,
             EXAMPLE_FUNCTION_NAME,
             EXAMPLE_ARGS,
+<<<<<<< HEAD
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CRYPTO_DIR_PATH,
             EXAMPLE_CHAINCODE_TYPE_NODE
+=======
+            EXAMPLE_ORGNAME,
+            EXAMPLE_TIMEOUT,
+            JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
+            EXAMPLE_CHAINCODE_TYPE_NODE,
+            EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
         );
 
         expect(FabricClient.Channel.prototype.sendTransaction).toBeCalledTimes(
@@ -133,17 +213,29 @@ describe('instantiateChaincode', () => {
         });
 
         await instantiateChaincode(
+<<<<<<< HEAD
             PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+            EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_CHAINCODE_VERSION,
             EXAMPLE_FUNCTION_NAME,
             EXAMPLE_ARGS,
+<<<<<<< HEAD
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CRYPTO_DIR_PATH,
             EXAMPLE_CHAINCODE_TYPE_NODE
+=======
+            EXAMPLE_ORGNAME,
+            EXAMPLE_TIMEOUT,
+            JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
+            EXAMPLE_CHAINCODE_TYPE_NODE,
+            EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
         );
 
         expect(
@@ -175,17 +267,29 @@ describe('instantiateChaincode', () => {
         });
 
         await instantiateChaincode(
+<<<<<<< HEAD
             PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+            EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_CHAINCODE_VERSION,
             EXAMPLE_FUNCTION_NAME,
             EXAMPLE_ARGS,
+<<<<<<< HEAD
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CRYPTO_DIR_PATH,
             EXAMPLE_CHAINCODE_TYPE_NODE
+=======
+            EXAMPLE_ORGNAME,
+            EXAMPLE_TIMEOUT,
+            JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
+            EXAMPLE_CHAINCODE_TYPE_NODE,
+            EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
         );
 
         expect(
@@ -206,16 +310,28 @@ describe('instantiateChaincode', () => {
         });
 
         await instantiateChaincode(
+<<<<<<< HEAD
             PATH_TO_EXAMPLE_NETWORK_CONFIG,
+=======
+            EXAMPLE_CONNECTION_PROFILE_PATH,
+>>>>>>> master
             EXAMPLE_CHANNEL_NAME,
             EXAMPLE_CHAINCODE_NAME,
             EXAMPLE_CHAINCODE_VERSION,
             EXAMPLE_FUNCTION_NAME,
             EXAMPLE_ARGS,
+<<<<<<< HEAD
             EXAMPLE_ORGS[0],
             EXAMPLE_TIMEOUT,
             JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
             EXAMPLE_CRYPTO_DIR_PATH
+=======
+            EXAMPLE_ORGNAME,
+            EXAMPLE_TIMEOUT,
+            JSON.stringify(EXAMPLE_ENDORSEMENT_POLICY),
+            DEFAULT_CHAINCODE_TYPE,
+            EXAMPLE_CREDENTIAL_FILE_PATH
+>>>>>>> master
         );
 
         expect(

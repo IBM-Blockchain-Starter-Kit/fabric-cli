@@ -11,20 +11,36 @@
     "scripts": {
         "build": "tsc",
         "build:watch": "tsc -w",
+<<<<<<< HEAD
         "test": "LOGGING_LEVEL=error jest",
+=======
+        "test": "NODE_ENV= jest",
+>>>>>>> master
         "test:watch": "LOGGING_LEVEL=error jest --watchAll",
         "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand"
     },
     "license": "Apache-2.0",
     "dependencies": {
+<<<<<<< HEAD
+=======
+        "@types/log4js": "^2.3.5",
+>>>>>>> master
         "config": "^3.1.0",
         "fabric-ca-client": "~1.4.0",
         "fabric-client": "~1.4.0",
         "fabric-network": "^1.4.1",
         "fs-extra": "^2.0.0",
+<<<<<<< HEAD
         "jslint": "^0.12.1",
         "log4js": "^0.6.38",
         "logger": "0.0.1",
+=======
+        "git-install": "^0.5.2",
+        "jslint": "^0.12.1",
+        "log4js": "^0.6.38",
+        "logger": "0.0.1",
+        "ts-sinon": "^1.0.17",
+>>>>>>> master
         "yargs": "^10.0.3"
     },
     "bin": {
