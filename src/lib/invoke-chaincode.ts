@@ -18,10 +18,7 @@ import * as FabricClient from 'fabric-client';
 import * as path from 'path';
 import { inspect } from 'util';
 import FabricHelper from './FabricHelper';
-<<<<<<< HEAD
-=======
 import { Gateway, Network } from 'fabric-network';
->>>>>>> master
 const logger = FabricHelper.getLogger('invoke-chaincode');
 
 interface ResponseObject {
@@ -36,11 +33,7 @@ export async function invokeChaincode(
     chaincodeName: string,
     functionName: string,
     args: string[],
-<<<<<<< HEAD
-    org: string,
-=======
     orgName: string,
->>>>>>> master
     queryOnly: boolean,
     timeout: number,
     credentialFilePath: string
@@ -55,68 +48,6 @@ export async function invokeChaincode(
         connectionProfilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-<<<<<<< HEAD
-        org,
-        credentialFilePath
-    );
-    const channel = fabricHelper.getChannelForOrg(org);
-    const client = fabricHelper.getClientForOrg(org);
-    let tx_id: FabricClient.TransactionId = null;
-
-    await fabricHelper.getOrgAdmin(org, credentialFilePath);
-
-    await channel.initialize();
-
-    tx_id = client.newTransactionID();
-
-    const request: FabricClient.ChaincodeInvokeRequest = {
-        chaincodeId: chaincodeName,
-        args,
-        txId: tx_id
-    };
-
-    if (functionName) {
-        request.fcn = functionName;
-    }
-
-    logger.debug(
-        `Sending transaction proposal with the following request: ${inspect(
-            request
-        )}`
-    );
-
-    try {
-        proposalResponses = await channel.sendTransactionProposal(
-            request,
-            timeout
-        );
-    } catch (err) {
-        logger.debug(`Failed to send transaction Proposal: ${err}`);
-        throw err;
-    }
-
-    FabricHelper.inspectProposalResponses(proposalResponses);
-
-    if (!queryOnly) {
-        logger.info('Sending transaction to orderer...');
-
-        await sendChaincodeInvokeProposal(
-            channel,
-            tx_id.getTransactionID(),
-            proposalResponses as [
-                FabricClient.ProposalResponse[],
-                FabricClient.Proposal
-            ],
-            timeout
-        );
-    }
-
-    response = getResponseFromProposalResponseObject(proposalResponses);
-
-    logger.info('Successfully sent transaction to the orderer');
-    logger.info(`Transaction response:\n ${inspect(response)}`);
-    return response;
-=======
         orgName,
         credentialFilePath
     );
@@ -207,7 +138,6 @@ export async function invokeChaincode(
         logger.error(`Invocation failed with org '${orgName}', channel '${channelName}'.  Error: ${err.message}`);
         throw (err);
     }
->>>>>>> master
 }
 
 function getResponseFromProposalResponseObject(

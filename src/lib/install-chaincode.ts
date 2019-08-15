@@ -19,10 +19,7 @@ import FabricHelper from './FabricHelper';
 import * as FabricClient from 'fabric-client';
 import { inspect } from 'util';
 import { DEFAULT_CHAINCODE_TYPE } from './constants';
-<<<<<<< HEAD
-=======
 import { Gateway } from 'fabric-network';
->>>>>>> master
 
 const logger = FabricHelper.getLogger('install-chaincode');
 
@@ -32,20 +29,12 @@ export async function installChaincode(
     chaincodeName: string,
     chaincodePath: string,
     chaincodeVersion: string,
-<<<<<<< HEAD
-    org: string,
-=======
     orgName: string,
->>>>>>> master
     chaincodeType: FabricClient.ChaincodeType = DEFAULT_CHAINCODE_TYPE,
     credentialFilePath: string
 ): Promise<void> {
     logger.debug(
-<<<<<<< HEAD
-        `============ Install chaincode called for organization: ${org} ============`
-=======
         `============ Install chaincode called for organization: ${orgName} ============`
->>>>>>> master
     );
 
     let installProposalResponses: [
@@ -53,59 +42,10 @@ export async function installChaincode(
         FabricClient.Proposal
     ];
 
-<<<<<<< HEAD
-=======
-
->>>>>>> master
     const helper: FabricHelper = new FabricHelper(
         connectionProfilePath,
         channelName,
         path.join(process.env.HOME, 'fabric-client-kvs'),
-<<<<<<< HEAD
-        org,
-        credentialFilePath
-    );
-    
-    const channel = helper.getChannelForOrg(org);
-    const client = helper.getClientForOrg(org);
-    const user: FabricClient.User = await helper.getOrgAdmin(org, credentialFilePath);
-
-    logger.debug(`Successfully retrieved admin user: ${user}`);
-
-    // Need to convert targets from ChannelPeer to Peer
-    const installTargets = channel.getPeers().map((peer) => peer.getPeer());
-
-    const request: FabricClient.ChaincodeInstallRequest = {
-        targets: installTargets,
-        chaincodePath: chaincodePath,
-        chaincodeId: chaincodeName,
-        chaincodeVersion: chaincodeVersion,
-        chaincodeType: chaincodeType
-    };
-
-    logger.debug(
-        `Calling client.installChaincode with request: ${inspect(request)}`
-    );
-
-    try {
-        installProposalResponses = await installChaincodeOnPeersInRequest(
-            client,
-            request
-        );
-    } catch (err) {
-        throw err;
-    }
-
-    FabricHelper.inspectProposalResponses(installProposalResponses);
-
-    const peerNames: string = FabricHelper.getPeerNamesAsStringForChannel(
-        channel
-    );
-
-    logger.info(
-        `Successfully installed chaincode (${chaincodeName}) on peers (${peerNames}) for organization ${org}`
-    );
-=======
         orgName,
         credentialFilePath
     );
@@ -166,7 +106,6 @@ export async function installChaincode(
         logger.error(`Installation failed with org '${orgName}'.  Error: ${err.message}`);
         throw new Error(err)
     }
->>>>>>> master
 }
 
 async function installChaincodeOnPeersInRequest(
@@ -186,14 +125,6 @@ async function installChaincodeOnPeersInRequest(
         );
         proposalResponses = await client.installChaincode(request);
     } catch (err) {
-<<<<<<< HEAD
-        logger.error(`Failed to send install proposal due to error: ` + err);
-        throw new Error(`Failed to send install proposal due to error: ` + err);
-    }
-
-    return proposalResponses;
-}
-=======
         const errMessage = `Failed to send install proposal due to ${err}`
         logger.error(errMessage);
         throw new Error(errMessage);
@@ -201,4 +132,3 @@ async function installChaincodeOnPeersInRequest(
 
     return proposalResponses;
 }
->>>>>>> master

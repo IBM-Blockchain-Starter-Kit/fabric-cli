@@ -8,9 +8,5 @@
         "allowJs": true
     },
     "include": ["./src/**/*"],
-<<<<<<< HEAD
     "exclude": ["./lib", "src/**/*.spec.ts"]
-=======
-    "exclude": ["./lib", "src/**/*.spec.ts"],
->>>>>>> master
 }

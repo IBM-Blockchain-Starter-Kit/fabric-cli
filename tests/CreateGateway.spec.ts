@@ -20,7 +20,8 @@ import * as GatewayOptions from 'fabric-network';
 
 // const wallet = walletHelper.wallet;
 const fsWallet = new FileSystemWallet(`${__dirname}/../wallet`);
-// const gOptions: GatewayOptions = ;
+
+const gOptions = GatewayOptions;
 // const { gateway } = require('../src/lib/CreateGateway');
 
 
@@ -75,9 +76,10 @@ it ('should be true', async () => {
     (wallet.importIdentity as any) = jest.fn(() => {
         return fsWallet
     });
-    (GatewayOptions.identity as any) = jest.fn(() => {
-        return EXAMPLE_USER;
-    })
+
+const gatewayMock = Gateway.prototype;
+
+
     
     // (gateway.connect as any) = jest.fn(() => {
     //     return gateway.identity
