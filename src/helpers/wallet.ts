@@ -20,7 +20,7 @@ const config = require('config');
 const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
 const fsWallet = new FileSystemWallet(`${__dirname}/../wallet`);
 const logger = log4js.getLogger('helpers - wallet');
-logger.setLevel(config.logLevel);
+logger.level = config.logLevel;
 
 /**
  * Wallet object

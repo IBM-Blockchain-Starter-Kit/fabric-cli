@@ -94,9 +94,6 @@ export function builder(yargs) {
             //validate endorsement policy (i.e. validate it is JSON)
             var endorsementPolicy = argv['endorsement-policy'];
             try {
-                console.log(
-                    'Endorsement policy provided as input: ' + endorsementPolicy
-                );
                 JSON.parse(endorsementPolicy);
                 return true;
             } catch (err) {
@@ -109,7 +106,6 @@ export function builder(yargs) {
             }
         })
         .check(function(argv) {
-            console.log("here");
             if (!argv['collections-config']) {
               return true;
             }
@@ -117,9 +113,6 @@ export function builder(yargs) {
             var collectionsConfigPath = argv['collections-config']
             var collectionsConfig = fs.readFileSync(collectionsConfigPath);
             try {
-                console.log(
-                    'Collections config provided as input: ' + collectionsConfig
-                );
                 JSON.parse(collectionsConfig.toString());
                 return true;
             } catch (err) {

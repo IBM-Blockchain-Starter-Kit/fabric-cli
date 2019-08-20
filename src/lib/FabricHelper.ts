@@ -29,14 +29,14 @@ const LOGGING_LEVEL = process.env.LOGGING_LEVEL
     ? process.env.LOGGING_LEVEL
     : 'info';
 
-logger.setLevel(LOGGING_LEVEL);
+logger.level = LOGGING_LEVEL;
 FabricClient.setLogger(logger);
 
 export default class FabricHelper {
 
     public static getLogger(moduleName: string, loggingLevel: string = 'INFO') {
         const logger = log4js.getLogger(moduleName);
-        logger.setLevel(loggingLevel);
+        logger.level = loggingLevel;
         return logger;
     }
     public static inspectProposalResponses(
@@ -243,7 +243,7 @@ export default class FabricHelper {
                     const caUrl = connProfCa[currentCa].url;
                     logger.info('The Org for this CA is: ' + orgName);
                     logger.info('The CA Name is: ' + caName);
-                    logger.info('The CA UrL is: ' + caUrl);
+                    logger.info('The CA Url is: ' + caUrl);
                     self.caClients[orgName] = new CaClient(
                         caUrl,
                         null /*defautl TLS opts*/,
