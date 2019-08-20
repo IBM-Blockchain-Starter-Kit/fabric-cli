@@ -21,6 +21,7 @@ import { DEFAULT_CHAINCODE_TYPE } from './constants';
 import FabricHelper from './FabricHelper';
 import { Gateway, Network } from 'fabric-network';
 import * as fs from 'fs';
+import { existsTypeAnnotation } from '@babel/types';
 
 const logger = FabricHelper.getLogger('instantiate-chaincode');
 
@@ -52,8 +53,7 @@ export async function instantiateChaincode(
         credentialFilePath
     );
 
-    try{
-
+    try {
         let gateway: Gateway = await helper.getGateway();
         if (!gateway) {
             throw `Gateway object for org '${orgName}' is undefined, null, or empty`
@@ -84,7 +84,8 @@ export async function instantiateChaincode(
         const { upgrade, versionToDeploy } = await checkIsUpgradeAndGetVersion(
             channel,
             channel.getPeers()[0].getName(),
-            chaincodeName
+            chaincodeName,
+            chaincodeVersion
         );
 
         // Override deployment version if one is given. Not yet supported as command line param is currently required.
@@ -121,7 +122,7 @@ export async function instantiateChaincode(
             `Successfully deployed ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${client.getPeersForOrg(orgName)})`
         );
     }
-    catch(err){
+    catch(err) {
         logger.error(`Instantiation failed with org '${orgName}', channel '${channelName}'.  Error: ${err.message}`);
         throw (err);
     }
@@ -167,7 +168,8 @@ function buildDeploymentOptions(
 async function checkIsUpgradeAndGetVersion(
     channel: FabricClient.Channel,
     targetPeerName: string,
-    chaincodeName: string
+    chaincodeName: string,
+    chaincodeVersion: number
 ) {
     let isUpgrade: boolean = false;
     let newChaincodeVersion: number = 0;
@@ -182,20 +184,20 @@ async function checkIsUpgradeAndGetVersion(
     );
     for (let i = 0; i < chaincodes.length; i++) {
         logger.debug(
-            `Found instantiated chaincode: ${chaincodes[i].name}, version: ${
-            chaincodes[i].version
-            }`
+            `Found instantiated chaincode: ${chaincodes[i].name}, version: ${chaincodes[i].version}`
         );
         if (chaincodes[i].name === chaincodeName) {
-            newChaincodeVersion = parseInt(chaincodes[i].version) + 1;
-            isUpgrade = true;
+            if(parseInt(chaincodes[i].version) == chaincodeVersion) {
+                throw new Error(`Instantiation failed as chaincode ${chaincodeName}:${chaincodeVersion} is already instantiated on ${channel.getName()}`);
+            } 
+            isUpgrade = true;                        
             logger.info(
-                `Found instantiated chaincode with same name (${chaincodeName})... upgrading to version ${newChaincodeVersion}`
-            );
+                `Found instantiated chaincode with same name (${chaincodeName})... upgrading to version ${chaincodeVersion}`
+            );       
         }
     }
 
-    return { upgrade: isUpgrade, versionToDeploy: newChaincodeVersion };
+    return { upgrade: isUpgrade, versionToDeploy: chaincodeVersion };
 }
 
 async function deployChaincode(
