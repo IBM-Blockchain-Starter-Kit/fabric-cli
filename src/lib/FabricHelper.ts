@@ -217,7 +217,7 @@ export default class FabricHelper {
         this.connectionProfilePath = connectionProfilePath;
         this.caClients = {};
         this.keyValueStoreBasePath = keyValueStoreBasePath;
-        this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
+        this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath).toString())
         this.enrollId;
         this.enrollSecret;
 
@@ -286,9 +286,6 @@ export default class FabricHelper {
      * @returns {FabricClient.User} - Returns a user with Admin identity
      */
     public async getOrgAdmin(org: string, credentialsFilePath: string): Promise<FabricClient.User> {
-        if(!(org in this.connectionProfile.organizations)){
-            throw new Error(`Unknown Org: ${org}`); 
-        }
         if (!fs.existsSync(credentialsFilePath)) {
             throw new Error(
                 'Failed to find the credentails file for IBPv2 in the current path'

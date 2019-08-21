@@ -1,3 +1,6 @@
+import { isProperty, exportAllDeclaration, isModuleSpecifier, Method } from "@babel/types";
+import { Gateway } from 'fabric-network';
+
 /**
  * Copyright 2018 IBM Corp. All Rights Reserved.
  *
@@ -14,12 +17,21 @@
  *  limitations under the License.
  */
 
+// const { Gateway } = require('fabric-network');
 
 
-const { Gateway } = require('fabric-network');
-const walletHelper = require(`../helpers/wallet`);
+
+// import { wallet } from '../helpers/wallet';
 
 
+// import * as wallet from '../helpers/wallet';
+
+// const wallet = import '../helpers/wallet';
+import * as GatewayOptions from 'fabric-network';
+
+const wallet = require ('../helpers/wallet');
+
+// const wallet = walletHelper.wallet;
 
 /**
  * FabricRoutes class that handles creating routes that need to connect to the
@@ -29,7 +41,7 @@ const walletHelper = require(`../helpers/wallet`);
  * controllers.
  */
 export class CreateGateway {
-    gateway: any;
+ gateway: Gateway;
 
   constructor() {
     this.gateway = new Gateway();
@@ -39,29 +51,29 @@ export class CreateGateway {
   /**
    * Connect the gateway instance
    */
-  async setupGateway(commConnProfilePath, orgName, enrollId, enrollSecret, credentialFilePath) {
+  async setupGateway (commConnProfilePath: string, orgName: string, enrollId: string, enrollSecret: string, credentialFilePath: string) {
     // logger.debug('entering >>> setupGateway()');
 
     try {
-      const org = orgName;
-      const user = enrollId;
-      const pw = enrollSecret;
+      const org: string = orgName;
+      const user: string = enrollId;
+      const pw: string = enrollSecret;
       //const { serviceDiscovery } = fabricConfig;
 
       // user enroll and import if identity not found in wallet
-      const idExists = await walletHelper.identityExists(user);
+      const idExists: boolean = await wallet.identityExists(user);
       if (!idExists) {
         // logger.debug(`Enrolling and importing ${user} into wallet`);
-        const privateKey = walletHelper.getPrivateKey(credentialFilePath);
-        const publicCert = walletHelper.getPublicCert(credentialFilePath);
-        await walletHelper.importIdentity(user, org, publicCert, privateKey);
+        const privateKey: string = wallet.getPrivateKey(credentialFilePath);
+        const publicCert: string = wallet.getPublicCert(credentialFilePath);
+        await wallet.importIdentity(user, org, publicCert, privateKey);
       }
 
       // gateway and contract connection
       // logger.debug('Connecting to gateway');
-      await this.gateway.connect(commConnProfilePath, {
+       const connect: any = await this.gateway.connect(commConnProfilePath, {
         identity: user,
-        wallet: walletHelper.getWallet(),
+        wallet: wallet.getWallet(),
         discovery: { // https://fabric-sdk-node.github.io/release-1.4/module-fabric-network.Gateway.html#~DiscoveryOptions
           enabled: true,  //serviceDiscovery.enabled,           //change
           asLocalhost: false  //serviceDiscovery.asLocalhost,   //change
@@ -76,13 +88,9 @@ export class CreateGateway {
       // logger.error(err.message);
       throw new Error(err.message);
     }
-
+  
     // logger.debug('exiting <<< setupGateway()');
   }
-
-
-
 }
-
 exports.CreateGateway = CreateGateway;
-
+// module.exports = CreateGateway;

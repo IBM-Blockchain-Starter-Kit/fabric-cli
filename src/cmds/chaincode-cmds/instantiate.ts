@@ -12,8 +12,6 @@ limitations under the License.
 */
 
 import { instantiateChaincode } from '../../lib/instantiate-chaincode';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export const command: string = 'instantiate';
 export const desc: string = 'Instantiate chaincode';
@@ -82,14 +80,6 @@ export function builder(yargs) {
             requiresArg: true,
             type: 'string'
         })
-        .option('collections-config', {
-            demandOption: false,
-            describe:
-                'Absolute path to where the collections-config file is located',
-            requiresArg: true,
-            type: 'string',
-            default: null
-        })
         .check(function(argv) {
             //validate endorsement policy (i.e. validate it is JSON)
             var endorsementPolicy = argv['endorsement-policy'];
@@ -107,47 +97,6 @@ export function builder(yargs) {
                     'Invalid --endorsement-policy argument. It was not a valid JSON.'
                 );
             }
-        })
-        .check(function(argv) {
-            //validate endorsement policy (i.e. validate it is JSON)
-            var collectionsConfigPath = argv['collections-config']
-            var collectionsConfig = fs.readFileSync(collectionsConfigPath);
-            try {
-                console.log(
-                    'Collections config provided as input: ' + collectionsConfig
-                );
-                //JSON.parse(collectionsConfig);
-                return true;
-            } catch (err) {
-                console.log(
-                    'Failed to parse as JSON provided collectionsConfig: ' + err
-                );
-                throw new Error(
-                    'Invalid --collections-config argument. It was not a valid JSON.'
-                );
-            }
-        })
-        .check(function(argv) {
-            if (!argv['cc-type'] || argv['cc-type'] === 'golang') {
-                if (!process.env.GOPATH) {
-                    throw new Error(
-                        'GOPATH environment is not set. Environment setting required to deploy chaincode'
-                    );
-                }
-                let absolutePathChaincode = path.join(
-                    process.env.GOPATH,
-                    'src',
-                    argv['src-dir']
-                );
-
-                if (!fs.existsSync(absolutePathChaincode)) {
-                    throw new Error(
-                        'Could not find absolute path for chaincode based on GOPATH variable and --src-dir argument.  Absolute path built: ' +
-                            absolutePathChaincode
-                    );
-                }
-            }
-            return true;
         });
 }
 
@@ -164,7 +113,6 @@ export async function handler(argv) {
         argv['timeout'],
         argv['endorsement-policy'],
         argv['cc-type'],
-        argv['admin-identity'],
-        argv['collections-config']
+        argv['admin-identity']
     );
 }

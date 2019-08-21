@@ -42,7 +42,10 @@ export async function installChaincode(
         FabricClient.Proposal
     ];
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> AkeemeMerge
     const helper: FabricHelper = new FabricHelper(
         connectionProfilePath,
         channelName,
