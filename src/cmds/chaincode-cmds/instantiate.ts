@@ -14,6 +14,7 @@ limitations under the License.
 import { instantiateChaincode } from '../../lib/instantiate-chaincode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Logger } from 'log4js';
 
 export const command: string = 'instantiate';
 export const desc: string = 'Instantiate chaincode';
@@ -49,7 +50,7 @@ export function builder(yargs) {
             describe: 'Function to call on instantiation call.',
             requiresArg: false,
             type: 'string',
-            default: 'init'
+            default: ''
         })
         .option('init-args', {
             array: true,
@@ -90,6 +91,18 @@ export function builder(yargs) {
             type: 'string',
             default: null
         })
+        // in case cc-type is golang, default init-fn is "Init"
+        // .check(function(argv) {
+        //     var cc_type = argv['cc-type'];
+        //     var init_fn = argv['init-fn'];
+        //     if (cc_type == "golang" && !init_fn) {
+        //         argv['init-fn'] = "Init";
+        //     }
+        //     console.log(
+        //         `init-function passed in for platform ${argv['cc-type']} is... ${argv['init-fn']}`
+        //     );
+        //     return true;
+        // })
         .check(function(argv) {
             //validate endorsement policy (i.e. validate it is JSON)
             var endorsementPolicy = argv['endorsement-policy'];

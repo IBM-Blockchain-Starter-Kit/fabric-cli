@@ -147,7 +147,11 @@ function buildDeploymentOptions(
     };
     if (functionName) {
         deploymentOptions.fcn = functionName;
-        logger.info('functionName: ' + functionName);
+        logger.info('functionName: ' + deploymentOptions.fcn);
+    }
+    if (!functionName && chaincodeType == 'golang') {
+        deploymentOptions.fcn = "Init";
+        logger.info('functionName: ' + deploymentOptions.fcn);
     }
     if (endorsementPolicy) {
         // TODO: Test that endorsement policy is actuall set on the channel
