@@ -76,7 +76,7 @@ wallet.getWallet = () => {
  *
  * @param {string} id - label of id in wallet
  */
-wallet.identityExists = async (id: string) => {
+export const identityExist = async (id: string) => {
   logger.debug('entering >>> identityExists()');
   const exists = await fsWallet.exists(id);
   logger.debug(`${id} exists in wallet: ${exists}`);
@@ -109,20 +109,17 @@ wallet.getPublicCert = (credentialFilePath: string): string => {
 /**
  *
  * @param {string} id - label of id importing into wallet
- * @param {string} org - org that id belongs to
+ * @param {string} mspId - msp that id belongs to
  * @param {string} cert - cert from enrolling user
  * @param {string} key - key from enrolling user
  */
-wallet.importIdentity = async (id: string, org: string, cert: string, key: string) => {
+export const importIdentity = async (id: string, mspId: string, cert: string, key: string) => { 
   logger.debug('entering >>> importIdentity()');
   try {
     logger.debug(`Importing ${id} into wallet`);
-    await fsWallet.import(id, X509WalletMixin.createIdentity(org, cert, key));
+    await fsWallet.import(id, X509WalletMixin.createIdentity(mspId, cert, key));
   } catch (err) {
     logger.error(`Error importing ${id} into wallet: ${err}`);
     throw new Error(err);
   }
 };
-
-module.exports = wallet;
-

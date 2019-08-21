@@ -1,4 +1,4 @@
-import { isProperty, exportAllDeclaration, isModuleSpecifier } from "@babel/types";
+import { isProperty, exportAllDeclaration, isModuleSpecifier, Method } from "@babel/types";
 import { Gateway } from 'fabric-network';
 
 /**
@@ -27,6 +27,7 @@ import { Gateway } from 'fabric-network';
 // import * as wallet from '../helpers/wallet';
 
 // const wallet = import '../helpers/wallet';
+import * as GatewayOptions from 'fabric-network';
 
 const wallet = require ('../helpers/wallet');
 
@@ -60,7 +61,7 @@ export class CreateGateway {
       //const { serviceDiscovery } = fabricConfig;
 
       // user enroll and import if identity not found in wallet
-      const idExists: string = await wallet.identityExists(user);
+      const idExists: boolean = await wallet.identityExists(user);
       if (!idExists) {
         // logger.debug(`Enrolling and importing ${user} into wallet`);
         const privateKey: string = wallet.getPrivateKey(credentialFilePath);
@@ -70,7 +71,7 @@ export class CreateGateway {
 
       // gateway and contract connection
       // logger.debug('Connecting to gateway');
-      const gatewayConn = await this.gateway.connect(commConnProfilePath, {
+       const connect: any = await this.gateway.connect(commConnProfilePath, {
         identity: user,
         wallet: wallet.getWallet(),
         discovery: { // https://fabric-sdk-node.github.io/release-1.4/module-fabric-network.Gateway.html#~DiscoveryOptions
