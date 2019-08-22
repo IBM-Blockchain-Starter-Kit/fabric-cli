@@ -41,8 +41,7 @@ export async function installChaincode(
         (FabricClient.ProposalResponse | Error)[],
         FabricClient.Proposal
     ];
-
-
+    
     const helper: FabricHelper = new FabricHelper(
         connectionProfilePath,
         channelName,

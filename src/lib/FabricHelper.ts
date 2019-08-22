@@ -217,7 +217,7 @@ export default class FabricHelper {
         this.connectionProfilePath = connectionProfilePath;
         this.caClients = {};
         this.keyValueStoreBasePath = keyValueStoreBasePath;
-        this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath))
+        this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath).toString())
         this.enrollId;
         this.enrollSecret;
 

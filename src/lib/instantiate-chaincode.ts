@@ -1,4 +1,4 @@
-/**
+x/**
  * Copyright 2019 IBM All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,6 @@ import { DEFAULT_CHAINCODE_TYPE } from './constants';
 import FabricHelper from './FabricHelper';
 import { Gateway, Network } from 'fabric-network';
 import * as fs from 'fs';
-import { existsTypeAnnotation } from '@babel/types';
 
 const logger = FabricHelper.getLogger('instantiate-chaincode');
 
@@ -169,7 +168,6 @@ function buildDeploymentOptions(
         deploymentOptions['endorsement-policy'] = JSON.parse(endorsementPolicy);
         logger.info('The endorsementPolicy value: ' + endorsementPolicy);
     }
-
     if (collectionsConfigFilePath) {
         const collectionsConfig = fs.readFileSync(collectionsConfigFilePath).toString();
         deploymentOptions['collections-config'] = JSON.parse(collectionsConfig);

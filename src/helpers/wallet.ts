@@ -15,18 +15,54 @@
  */
 
 import * as fs from 'fs-extra';
-const log4js = require('log4js');
-const config = require('config');
-const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
+import { FileSystemWallet, InMemoryWallet, Wallet } from 'fabric-network';
+//import { Wallet } from './wallet';
+//const log4js = require('log4js');
+import * as log4js from 'log4js';
+import { config } from 'config'
+import { X509WalletMixin } from 'fabric-network';
+import { exportAllDeclaration, isImport } from '@babel/types';
+
+// import { GatewayOptions } from 'fabric-network';
+// const { Wallet } = require('fabric-network');
 const fsWallet = new FileSystemWallet(`${__dirname}/../wallet`);
 const logger = log4js.getLogger('helpers - wallet');
-logger.level = config.logLevel;
+// const FileSystemWallet = require('fabric-network');
+// logger.setLevel(config.logLevel);
+// const walletHelper = require(`../helpers/wallet`);
+
+const LOGGING_LEVEL = process.env.LOGGING_LEVEL
+    ? process.env.LOGGING_LEVEL
+    : 'info';
+
+logger.level = LOGGING_LEVEL;
+
+
 
 /**
  * Wallet object
  */
-const wallet : any = {};
-const base64BufferEncoding = 'base64';
+
+// const wallet : Wallet = {
+//   delete(),
+//   exists()
+//   exports();
+
+// };
+// const { Wallet } = require('fabric-network');
+// const wallet = Wallet;
+
+export const wallet: any = {};
+// export const wallet = FileSystemWallet;
+
+// export const wallet: FileSystemWallet;
+// export const wallet: Wallet;
+
+
+const base64BufferEncoding: BufferEncoding = 'base64';
+
+
+
 
 /**
  * Return FileSystemWallet object
@@ -40,7 +76,7 @@ wallet.getWallet = () => {
  *
  * @param {string} id - label of id in wallet
  */
-wallet.identityExists = async (id) => {
+export const identityExist = async (id: string) => {
   logger.debug('entering >>> identityExists()');
   const exists = await fsWallet.exists(id);
   logger.debug(`${id} exists in wallet: ${exists}`);
@@ -53,8 +89,8 @@ wallet.identityExists = async (id) => {
  * @param {string} credentialFilePath - Path to file containing admin credentials
  * @returns {string} - Private Key read from Credential File
  */
-wallet.getPrivateKey = (credentialFilePath) => {
-  const credentials = JSON.parse(fs.readFileSync(credentialFilePath));
+wallet.getPrivateKey = (credentialFilePath: string): string => {
+  const credentials = JSON.parse(fs.readFileSync(credentialFilePath).toString());
   const privateKey = Buffer.from(credentials.private_key, base64BufferEncoding).toString();
   return privateKey;
 }
@@ -64,8 +100,8 @@ wallet.getPrivateKey = (credentialFilePath) => {
  * @param {string} credentialFilePath - Path to file containing admin credentials
  * @returns {string} - Public Certificate read from Credential File
  */
-wallet.getPublicCert = (credentialFilePath) => {
-  const credentials = JSON.parse(fs.readFileSync(credentialFilePath));
+wallet.getPublicCert = (credentialFilePath: string): string => {
+  const credentials = JSON.parse(fs.readFileSync(credentialFilePath).toString());
   const publicCert = Buffer.from(credentials.cert, base64BufferEncoding).toString();
   return publicCert;
 }
@@ -73,19 +109,17 @@ wallet.getPublicCert = (credentialFilePath) => {
 /**
  *
  * @param {string} id - label of id importing into wallet
- * @param {string} org - org that id belongs to
+ * @param {string} mspId - msp that id belongs to
  * @param {string} cert - cert from enrolling user
  * @param {string} key - key from enrolling user
  */
-wallet.importIdentity = async (id, org, cert, key) => {
+export const importIdentity = async (id: string, mspId: string, cert: string, key: string) => { 
   logger.debug('entering >>> importIdentity()');
   try {
     logger.debug(`Importing ${id} into wallet`);
-    await fsWallet.import(id, X509WalletMixin.createIdentity(org, cert, key));
+    await fsWallet.import(id, X509WalletMixin.createIdentity(mspId, cert, key));
   } catch (err) {
     logger.error(`Error importing ${id} into wallet: ${err}`);
     throw new Error(err);
   }
 };
-
-module.exports = wallet;
