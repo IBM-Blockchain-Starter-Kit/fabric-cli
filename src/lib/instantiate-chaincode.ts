@@ -148,15 +148,14 @@ function buildDeploymentOptions(
 
     // determine method to instantiate ledger with (or omit)
     switch (chaincodeType) {
-        case 'node':            
-            deploymentOptions.fcn = functionName ? (functionName) : "Init";        
-            break;
-
-
         case 'golang':
-            deploymentOptions.fcn = functionName ? (functionName) : "";
+            deploymentOptions.fcn = functionName ? (functionName) : "Init";
             break;
 
+
+        case 'node':            
+            deploymentOptions.fcn = functionName ? (functionName) : "";        
+            break;
     }
     if (deploymentOptions.fcn !== "") {
         logger.info('functionName: ' + deploymentOptions.fcn);
