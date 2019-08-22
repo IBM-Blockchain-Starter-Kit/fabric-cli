@@ -145,19 +145,32 @@ function buildDeploymentOptions(
         chaincodeVersion: chaincodeVersion.toString(),
         txId: tx_id
     };
-    if (functionName) {
-        deploymentOptions.fcn = functionName;
+
+    // determine method to instantiate ledger with (or omit)
+    switch (chaincodeType) {
+        case 'node':            
+            deploymentOptions.fcn = functionName ? (functionName) : "Init";        
+            break;
+
+
+        case 'golang':
+            deploymentOptions.fcn = functionName ? (functionName) : "";
+            break;
+
+    }
+    if (deploymentOptions.fcn !== "") {
         logger.info('functionName: ' + deploymentOptions.fcn);
     }
-    if (!functionName && chaincodeType == 'golang') {
-        deploymentOptions.fcn = "Init";
-        logger.info('functionName: ' + deploymentOptions.fcn);
+    else {
+        logger.info('instantiate chaincode on channel without init function');
     }
+
     if (endorsementPolicy) {
         // TODO: Test that endorsement policy is actuall set on the channel
         deploymentOptions['endorsement-policy'] = JSON.parse(endorsementPolicy);
         logger.info('The endorsementPolicy value: ' + endorsementPolicy);
     }
+
     if (collectionsConfigFilePath) {
         const collectionsConfig = fs.readFileSync(collectionsConfigFilePath).toString();
         deploymentOptions['collections-config'] = JSON.parse(collectionsConfig);
