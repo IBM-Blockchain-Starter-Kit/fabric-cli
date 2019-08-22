@@ -15,54 +15,18 @@
  */
 
 import * as fs from 'fs-extra';
-import { FileSystemWallet, InMemoryWallet, Wallet } from 'fabric-network';
-//import { Wallet } from './wallet';
-//const log4js = require('log4js');
-import * as log4js from 'log4js';
-import { config } from 'config'
-import { X509WalletMixin } from 'fabric-network';
-import { exportAllDeclaration, isImport } from '@babel/types';
-
-// import { GatewayOptions } from 'fabric-network';
-// const { Wallet } = require('fabric-network');
+const log4js = require('log4js');
+const config = require('config');
+const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
 const fsWallet = new FileSystemWallet(`${__dirname}/../wallet`);
 const logger = log4js.getLogger('helpers - wallet');
-// const FileSystemWallet = require('fabric-network');
-// logger.setLevel(config.logLevel);
-// const walletHelper = require(`../helpers/wallet`);
-
-const LOGGING_LEVEL = process.env.LOGGING_LEVEL
-    ? process.env.LOGGING_LEVEL
-    : 'info';
-
-logger.level = LOGGING_LEVEL;
-
-
+logger.level = config.logLevel;
 
 /**
  * Wallet object
  */
-
-// const wallet : Wallet = {
-//   delete(),
-//   exists()
-//   exports();
-
-// };
-// const { Wallet } = require('fabric-network');
-// const wallet = Wallet;
-
-export const wallet: any = {};
-// export const wallet = FileSystemWallet;
-
-// export const wallet: FileSystemWallet;
-// export const wallet: Wallet;
-
-
-const base64BufferEncoding: BufferEncoding = 'base64';
-
-
-
+const wallet : any = {};
+const base64BufferEncoding = 'base64';
 
 /**
  * Return FileSystemWallet object
@@ -76,7 +40,7 @@ wallet.getWallet = () => {
  *
  * @param {string} id - label of id in wallet
  */
-export const identityExist = async (id: string) => {
+wallet.identityExists = async (id) => {
   logger.debug('entering >>> identityExists()');
   const exists = await fsWallet.exists(id);
   logger.debug(`${id} exists in wallet: ${exists}`);
@@ -89,8 +53,8 @@ export const identityExist = async (id: string) => {
  * @param {string} credentialFilePath - Path to file containing admin credentials
  * @returns {string} - Private Key read from Credential File
  */
-wallet.getPrivateKey = (credentialFilePath: string): string => {
-  const credentials = JSON.parse(fs.readFileSync(credentialFilePath).toString());
+wallet.getPrivateKey = (credentialFilePath) => {
+  const credentials = JSON.parse(fs.readFileSync(credentialFilePath));
   const privateKey = Buffer.from(credentials.private_key, base64BufferEncoding).toString();
   return privateKey;
 }
@@ -100,8 +64,8 @@ wallet.getPrivateKey = (credentialFilePath: string): string => {
  * @param {string} credentialFilePath - Path to file containing admin credentials
  * @returns {string} - Public Certificate read from Credential File
  */
-wallet.getPublicCert = (credentialFilePath: string): string => {
-  const credentials = JSON.parse(fs.readFileSync(credentialFilePath).toString());
+wallet.getPublicCert = (credentialFilePath) => {
+  const credentials = JSON.parse(fs.readFileSync(credentialFilePath));
   const publicCert = Buffer.from(credentials.cert, base64BufferEncoding).toString();
   return publicCert;
 }
@@ -109,17 +73,19 @@ wallet.getPublicCert = (credentialFilePath: string): string => {
 /**
  *
  * @param {string} id - label of id importing into wallet
- * @param {string} mspId - msp that id belongs to
+ * @param {string} org - org that id belongs to
  * @param {string} cert - cert from enrolling user
  * @param {string} key - key from enrolling user
  */
-export const importIdentity = async (id: string, mspId: string, cert: string, key: string) => { 
+wallet.importIdentity = async (id, org, cert, key) => {
   logger.debug('entering >>> importIdentity()');
   try {
     logger.debug(`Importing ${id} into wallet`);
-    await fsWallet.import(id, X509WalletMixin.createIdentity(mspId, cert, key));
+    await fsWallet.import(id, X509WalletMixin.createIdentity(org, cert, key));
   } catch (err) {
     logger.error(`Error importing ${id} into wallet: ${err}`);
     throw new Error(err);
   }
 };
+
+module.exports = wallet;
