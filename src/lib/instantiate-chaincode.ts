@@ -171,7 +171,7 @@ function buildDeploymentOptions(
     if (collectionsConfigFilePath) {
         const collectionsConfig = fs.readFileSync(collectionsConfigFilePath).toString();
         deploymentOptions['collections-config'] = JSON.parse(collectionsConfig);
-        logger.info('The endorsementPolicy value: ' + collectionsConfig);
+        logger.info('The collectionsConfiguration value: ' + collectionsConfig);
     }
     if (args) {
         deploymentOptions.args = args;
