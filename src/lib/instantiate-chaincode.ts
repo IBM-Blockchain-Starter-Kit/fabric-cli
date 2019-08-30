@@ -206,7 +206,7 @@ async function checkIsUpgradeAndGetVersion(
             } 
             isUpgrade = true;                        
             logger.info(
-                `Found instantiated chaincode with same name (${chaincodeName})... upgrading to version ${chaincodeVersion}`
+                `Found instantiated chaincode with same name (${chaincodes[i].name}:${chaincodes[i].version})... upgrading to version ${chaincodeVersion}`
             );       
         }
     }

@@ -34,10 +34,10 @@ export function builder(yargs) {
         })
         .option('cc-type', {
             demandOption: false,
-            describe:
-                'The langauge in which your chaincode is written, default=golang.',
+            describe: 'The langauge in which your chaincode is written',
             choices: ['golang', 'java', 'node'],
-            type: 'string'
+            type: 'string',
+            default: "golang"
         })
         .option('channel', {
             demandOption: true,
