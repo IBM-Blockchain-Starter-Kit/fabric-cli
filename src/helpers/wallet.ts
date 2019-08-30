@@ -42,7 +42,13 @@ wallet.getWallet = () => {
  */
 wallet.identityExists = async (id) => {
   logger.debug('entering >>> identityExists()');
-  const exists = await fsWallet.exists(id);
+  let exists = false;
+  try {
+    exists = await fsWallet.exists(id);
+  } catch (err) {
+    logger.debug(`${err}`);
+    return false;
+  }
   logger.debug(`${id} exists in wallet: ${exists}`);
   return exists;
 };
@@ -86,6 +92,7 @@ wallet.importIdentity = async (id, org, cert, key) => {
     logger.error(`Error importing ${id} into wallet: ${err}`);
     throw new Error(err);
   }
+  logger.debug("importIdentity () EOF");
 };
 
 module.exports = wallet;

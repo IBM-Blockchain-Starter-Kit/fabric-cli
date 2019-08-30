@@ -200,8 +200,8 @@ export default class FabricHelper {
     private objCreateGateway = new CreateGateway();
     private connectionProfilePath;
     private credentialFilePath;
-    private enrollId;
-    private enrollSecret;
+    // private enrollId;
+    // private enrollSecret;
 
 
 
@@ -218,8 +218,8 @@ export default class FabricHelper {
         this.caClients = {};
         this.keyValueStoreBasePath = keyValueStoreBasePath;
         this.connectionProfile = JSON.parse(fs.readFileSync(connectionProfilePath).toString())
-        this.enrollId;
-        this.enrollSecret;
+        // this.enrollId;
+        // this.enrollSecret;
 
 
         // Set up the client object
@@ -255,13 +255,13 @@ export default class FabricHelper {
         });
 
         //Obtain enrollId and enrollSecret from connection profile
-        try {
-            this.enrollId = this.connectionProfile.certificateAuthorities[caFromOrg].registrar.enrollId;
-            this.enrollSecret = this.connectionProfile.certificateAuthorities[caFromOrg].registrar.enrollSecret;
-        }
-        catch (error) {
-            logger.error(`Could not find credentials in connection profile. ${error}`)
-        }
+        // try {
+        //     this.enrollId = this.connectionProfile.certificateAuthorities[caFromOrg].registrar.enrollId;
+        //     this.enrollSecret = this.connectionProfile.certificateAuthorities[caFromOrg].registrar.enrollSecret;
+        // }
+        // catch (error) {
+        //     logger.error(`Could not find credentials in connection profile. ${error}`)
+        // }
 
     }
 
@@ -274,7 +274,8 @@ export default class FabricHelper {
      */
     public async getGateway() {
         logger.debug('entering >>> setupGateway()');
-        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, this.enrollId, this.enrollSecret, this.credentialFilePath)
+        this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, this.credentialFilePath)
+        // this.gateway = await this.objCreateGateway.setupGateway(this.connectionProfilePath, this.orgName, this.enrollId, this.enrollSecret, this.credentialFilePath)
         logger.debug('exiting <<< setupGateway()');
         return this.gateway;
     }
