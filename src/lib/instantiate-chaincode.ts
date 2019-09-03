@@ -201,7 +201,8 @@ async function checkIsUpgradeAndGetVersion(
             `Found instantiated chaincode: ${chaincodes[i].name}, version: ${chaincodes[i].version}`
         );
         if (chaincodes[i].name === chaincodeName) {
-            if(parseInt(chaincodes[i].version) == chaincodeVersion) {
+            logger.info(`chaincode ${chaincodes[i].name} is at version ${chaincodes[i].version}`);
+            if(Number(chaincodes[i].version) == chaincodeVersion) {
                 throw new Error(`Instantiation failed as chaincode ${chaincodeName}:${chaincodeVersion} is already instantiated on ${channel.getName()}`);
             } 
             isUpgrade = true;                        
