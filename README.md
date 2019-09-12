@@ -1,3 +1,6 @@
+## TODO
+- Create Travis-CI Configuration for automated builds and test
+
 # Overview
 The fabric-cli project is a Node.js application written using TypeScript, with the aim of making chaincode deployment simple.
 The tool can be used to install, instantiate/upgrade and invoke chaincode running on any v1.4.x fabric network by creating a `net-config.json` (A number of example `net-config.json` files are included in the `examples/` directory).
