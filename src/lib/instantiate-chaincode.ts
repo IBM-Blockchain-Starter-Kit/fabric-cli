@@ -101,10 +101,11 @@ export async function instantiateChaincode(
         tx_id = client.newTransactionID();
 
         logger.info(
-            `Attempting to deploy ${chaincodeName} version: ${chaincodeVersion} to channel (${channelName}) (on peers: ${peerNames})`
+            `Attempting to instantiate ${chaincodeName} version: ${chaincodeVersion} on channel (${channelName}) (on peers: ${peerNames})`
         );
 
         const deploymentOptions: FabricClient.ChaincodeInstantiateUpgradeRequest = buildDeploymentOptions(
+            channel.getPeersForOrg(orgName),
             chaincodeType,
             chaincodeName,
             chaincodeVersion,
@@ -128,6 +129,7 @@ export async function instantiateChaincode(
 }
 
 function buildDeploymentOptions(
+    channelPeers: FabricClient.ChannelPeer[],
     chaincodeType: FabricClient.ChaincodeType,
     chaincodeName: string,
     chaincodeVersion: number,
@@ -145,37 +147,37 @@ function buildDeploymentOptions(
         txId: tx_id
     };
 
-    // determine method to instantiate ledger with (or omit)
-    switch (chaincodeType) {
-        case 'golang':
-            deploymentOptions.fcn = functionName ? (functionName) : "Init";
-            break;
-
-
-        case 'node':            
-            deploymentOptions.fcn = functionName ? (functionName) : "";        
-            break;
+    // Set target peers for chaincode instantiation
+    // If targets is not set, then instantiation transaction can be sent to peers where the chaincode is not installed
+    deploymentOptions.targets = <string[]>[];
+    for (var peer of channelPeers) {
+        deploymentOptions.targets.push(peer.getName());
     }
-    if (deploymentOptions.fcn !== "") {
+     
+    // Determine init method to invoke
+    deploymentOptions.fcn = functionName ? (functionName) : null;         
+    
+    if (deploymentOptions.fcn != null) {
         logger.info('functionName: ' + deploymentOptions.fcn);
+        deploymentOptions.args = (args && args.length > 0) ? args : null;
+        logger.info('args: ' + deploymentOptions.args);
     }
     else {
-        logger.info('instantiate chaincode on channel without init function');
+        logger.info('Will instantiate chaincode on channel without invoking init function');
     }
 
     if (endorsementPolicy) {
-        // TODO: Test that endorsement policy is actuall set on the channel
+        // TODO: Test that endorsement policy is actually set on the channel
         deploymentOptions['endorsement-policy'] = JSON.parse(endorsementPolicy);
         logger.info('The endorsementPolicy value: ' + endorsementPolicy);
     }
+
     if (collectionsConfigFilePath) {
         const collectionsConfig = fs.readFileSync(collectionsConfigFilePath).toString();
         deploymentOptions['collections-config'] = JSON.parse(collectionsConfig);
         logger.info('The collectionsConfiguration value: ' + collectionsConfig);
     }
-    if (args) {
-        deploymentOptions.args = args;
-    }
+    
     return deploymentOptions;
 }
 
