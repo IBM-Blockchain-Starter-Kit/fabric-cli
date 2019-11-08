@@ -1,6 +1,6 @@
 {
     "name": "fabric-cli",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "description": "Simple CLI to normalize how to interact with fabric",
     "author": "IBM Blockchain Labs",
     "main": "fabric-cli.js",
@@ -19,9 +19,9 @@
     "dependencies": {
         "@types/log4js": "^2.3.5",
         "config": "^3.1.0",
-        "fabric-ca-client": "~1.4.0",
-        "fabric-client": "~1.4.0",
-        "fabric-network": "^1.4.1",
+        "fabric-ca-client": "~1.4.4",
+        "fabric-client": "~1.4.4",
+        "fabric-network": "^1.4.4",
         "fs-extra": "^2.0.0",
         "git-install": "^0.5.2",
         "jslint": "^0.12.1",
@@ -35,7 +35,7 @@
     },
     "devDependencies": {
         "@types/jest": "^24.0.11",
-        "jest": "^24.7.1",
+        "jest": "^24.9.0",
         "ts-jest": "^24.0.2",
         "typescript": "^3.5.3"
     },

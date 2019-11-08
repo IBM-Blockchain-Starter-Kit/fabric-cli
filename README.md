@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/IBM-Blockchain-Starter-Kit/fabric-cli.svg?branch=master)](https://travis-ci.org/IBM-Blockchain-Starter-Kit/fabric-cli)
+
 # Overview
 The fabric-cli project is a Node.js application written using TypeScript, with the aim of making chaincode deployment simple.
 
@@ -126,4 +128,4 @@ Options:
 ```
 
 ## TODO
-- Create Travis-CI Configuration for automated builds and test
+- Update automated tests
