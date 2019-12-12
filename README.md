@@ -55,8 +55,8 @@ Options:
                     install                                  [string] [required]
   --cc-type         The language in which your chaincode is written,
                     default=golang. [string] [choices: "golang", "java", "node"]
-  --src-dir         Relative path to where the chaincode directory is located
-                    (for golang this is with respect to GOPATH/src)
+  --src-dir         Path where the chaincode directory is located (for golang
+                    this is a relative folder with respect to GOPATH/src)
                                                              [string] [required]
 ```
 

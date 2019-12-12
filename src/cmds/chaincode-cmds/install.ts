@@ -43,7 +43,7 @@ export function builder(yargs) {
         .option('src-dir', {
             demandOption: true,
             describe:
-                'Relative path to where the chaincode directory is located (for golang this is with respect to GOPATH/src)',
+                'Path where the chaincode directory is located (for golang this is a relative folder with respect to GOPATH/src)',
             requiresArg: true,
             type: 'string'
         })
@@ -55,12 +55,17 @@ export function builder(yargs) {
             type: 'string'
         })
         .check(function(argv) {
+
+            // Normalize path to chaincode folder
+            argv['src-dir'] = path.normalize(argv['src-dir']);
+
             if (!argv['cc-type'] || argv['cc-type'] === 'golang') {
                 if (!process.env.GOPATH) {
                     throw new Error(
                         'GOPATH environment is not set. Environment setting required to deploy chaincode'
                     );
                 }
+                
                 let absolutePathChaincode = path.join(
                     process.env.GOPATH,
                     'src',
